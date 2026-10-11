@@ -6,8 +6,7 @@ import PhrasesScreen from './screens/PhrasesScreen.jsx';
 import MeScreen from './screens/MeScreen.jsx';
 import Onboarding from './screens/Onboarding.jsx';
 import { Icon } from './components/ui.jsx';
-import { MeContext, loadMe } from './lib/user.js';
-import { ensureAuth } from './lib/store.js';
+import { MeContext, linkToFirebase, loadMe } from './lib/user.js';
 import { BOOKINGS, BOOKING_TYPES } from './data/bookings.js';
 import { todayIso } from './data/itinerary.js';
 import { hasFirebase } from './config.js';
@@ -38,7 +37,7 @@ export default function App() {
   }, []);
   // Firebase 익명 로그인 유지 (오프라인이면 저장된 로그인 사용)
   useEffect(() => {
-    if (me && hasFirebase && !me.dev) ensureAuth().catch(() => {});
+    if (me && hasFirebase && !me.dev) linkToFirebase(me).then((next) => next !== me && setMe(next)).catch(() => {});
   }, [me]);
 
   const go = (t, s = '') => {

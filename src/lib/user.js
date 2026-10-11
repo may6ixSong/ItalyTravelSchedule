@@ -23,6 +23,18 @@ export async function register({ code, name, color, photo }) {
   return me;
 }
 
+// Firebase 연결 전에 만든(이 폰에만 저장된) 사용자를 Firebase 익명 사용자로 옮깁니다.
+// 입장 코드는 이미 통과했으니 다시 묻지 않습니다.
+export async function linkToFirebase(me) {
+  if (!hasFirebase || !me || me.dev) return me;
+  const uid = await ensureAuth();
+  if (uid === me.uid) return me;
+  const next = { ...me, uid };
+  await put('users', uid, { name: next.name, color: next.color, photo: next.photo || '', joinCode: JOIN_CODE });
+  setPref('me', next);
+  return next;
+}
+
 export async function updateMe(me, patchData) {
   const next = { ...me, ...patchData };
   setPref('me', next);
