@@ -38,18 +38,89 @@ function writeLocal(col, map) {
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 /* ---------- 인증 ---------- */
-export async function ensureAuth() {
-  if (!hasFirebase) return 'local';
-  const { auth, au } = await firebase();
-  if (auth.currentUser) return auth.currentUser.uid;
-  await new Promise((resolve) => {
-    const off = au.onAuthStateChanged(auth, () => {
-      off();
-      resolve();
+let authing = null;
+// 동시에 여러 곳에서 불러도 로그인은 한 번만 (익명 계정이 둘 생기지 않게)
+export function ensureAuth() {
+  if (!hasFirebase) return Promise.resolve('local');
+  authing ||= (async () => {
+    const { auth, au } = await firebase();
+    if (auth.currentUser) return auth.currentUser.uid;
+    await new Promise((resolve) => {
+      const off = au.onAuthStateChanged(auth, () => {
+        off();
+        resolve();
+      });
     });
+    if (!auth.currentUser) await au.signInAnonymously(auth);
+    return auth.currentUser.uid;
+  })().finally(() => {
+    authing = null;
   });
-  if (!auth.currentUser) await au.signInAnonymously(auth);
-  return auth.currentUser.uid;
+  return authing;
+}
+
+/* ---------- 마지막으로 받은 데이터 (끊겨도 유지) ----------
+   구독이 실패하거나 빈 값이 와도 화면이 0으로 초기화되지 않게, 마지막으로 받은 목록을 이 폰에 같이 남겨 둡니다.
+   사진은 용량이 커서 제외(사진은 Firestore 자체 오프라인 캐시가 담당). */
+const NO_MIRROR = ['photos'];
+const mirrorKey = (name) => `itp:last:${name}`;
+function readMirror(name) {
+  try {
+    const v = JSON.parse(localStorage.getItem(mirrorKey(name)));
+    return Array.isArray(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+function writeMirror(col, name, rows) {
+  if (NO_MIRROR.includes(col)) return;
+  try {
+    localStorage.setItem(mirrorKey(name), JSON.stringify(rows));
+  } catch {
+    /* 용량이 차면 이번에는 건너뛰어요 */
+  }
+}
+
+// 구독이 끊기면(로그인 전 권한 오류, 네트워크 흔들림) 잠시 뒤 로그인부터 다시 시도해서 이어 붙여요.
+function liveQuery(col, name, makeQuery, cb) {
+  let off = () => {};
+  let cancelled = false;
+  let timer = null;
+  let attempt = 0;
+  const last = readMirror(name);
+  if (last) cb(last);
+  const start = async () => {
+    try {
+      await ensureAuth();
+    } catch {
+      /* 오프라인이면 저장된 로그인 · 캐시로 계속 */
+    }
+    const { db, fs } = await firebase();
+    if (cancelled) return;
+    off = fs.onSnapshot(
+      makeQuery(db, fs),
+      (snap) => {
+        attempt = 0;
+        const mirror = readMirror(name);
+        // 캐시에서 온 빈 결과는 믿지 않고 마지막으로 받은 데이터를 유지
+        if (snap.empty && snap.metadata.fromCache && mirror?.length) return;
+        const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        writeMirror(col, name, rows);
+        cb(rows);
+      },
+      (err) => {
+        console.warn('subscribe', name, err.code);
+        off();
+        if (!cancelled) timer = setTimeout(start, Math.min(30000, 2000 * 2 ** attempt++));
+      },
+    );
+  };
+  start();
+  return () => {
+    cancelled = true;
+    clearTimeout(timer);
+    off();
+  };
 }
 
 /* ---------- 공통 API ---------- */
@@ -60,39 +131,13 @@ export function subscribe(col, cb) {
     bus.addEventListener(col, emit);
     return () => bus.removeEventListener(col, emit);
   }
-  let off = () => {};
-  let cancelled = false;
-  firebase().then(({ db, fs }) => {
-    if (cancelled) return;
-    off = fs.onSnapshot(
-      fs.collection(db, col),
-      (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
-      (err) => console.warn('subscribe', col, err.code),
-    );
-  });
-  return () => {
-    cancelled = true;
-    off();
-  };
+  return liveQuery(col, col, (db, fs) => fs.collection(db, col), cb);
 }
 
 // field == value 인 문서만 구독 (사진처럼 큰 문서를 장소별로만 받을 때)
 export function subscribeWhere(col, field, value, cb) {
   if (!hasFirebase) return subscribe(col, (rows) => cb(rows.filter((r) => r[field] === value)));
-  let off = () => {};
-  let cancelled = false;
-  firebase().then(({ db, fs }) => {
-    if (cancelled) return;
-    off = fs.onSnapshot(
-      fs.query(fs.collection(db, col), fs.where(field, '==', value)),
-      (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
-      (err) => console.warn('subscribeWhere', col, err.code),
-    );
-  });
-  return () => {
-    cancelled = true;
-    off();
-  };
+  return liveQuery(col, `${col}:${field}:${value}`, (db, fs) => fs.query(fs.collection(db, col), fs.where(field, '==', value)), cb);
 }
 
 export async function getOne(col, id) {
@@ -149,13 +194,13 @@ export async function remove(col, id) {
 }
 
 export function useCollection(col) {
-  const [rows, setRows] = useState(null);
+  const [rows, setRows] = useState(() => (hasFirebase ? readMirror(col) : null));
   useEffect(() => subscribe(col, setRows), [col]);
   return rows;
 }
 
 export function useWhere(col, field, value) {
-  const [rows, setRows] = useState(null);
+  const [rows, setRows] = useState(() => (hasFirebase && value != null ? readMirror(`${col}:${field}:${value}`) : null));
   useEffect(() => (value == null ? undefined : subscribeWhere(col, field, value, setRows)), [col, field, value]);
   return rows;
 }

@@ -4,10 +4,17 @@ import { useEffect, useState } from 'react';
 export function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine);
   useEffect(() => {
-    const on = () => setOnline(navigator.onLine);
+    // 끊김은 2초 동안 계속될 때만 표시 (안드로이드에서 잠깐 흔들릴 때 깜빡이지 않게). 연결은 바로 반영.
+    let t = null;
+    const on = () => {
+      clearTimeout(t);
+      if (navigator.onLine) setOnline(true);
+      else t = setTimeout(() => setOnline(navigator.onLine), 2000);
+    };
     window.addEventListener('online', on);
     window.addEventListener('offline', on);
     return () => {
+      clearTimeout(t);
       window.removeEventListener('online', on);
       window.removeEventListener('offline', on);
     };

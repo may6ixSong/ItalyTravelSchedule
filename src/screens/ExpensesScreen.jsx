@@ -35,7 +35,10 @@ function seedPrepaidOnce(rows, liveRate, uid) {
       });
     }));
     await patch('settings', 'meta', { expensesSeeded: true });
-  })();
+  })().catch((e) => {
+    seeding = null; // 오프라인 등으로 실패하면 다음에 다시 시도
+    console.warn('seed', e);
+  });
   return seeding;
 }
 

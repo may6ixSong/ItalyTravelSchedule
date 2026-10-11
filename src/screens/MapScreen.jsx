@@ -1,5 +1,21 @@
 // 지도 탭: 날짜별 번호 마커 · 후보 필터(동시 선택) · 내 주변 · 임시 동선 · 장소 시트 · 거리 재기 · 당일 예약 알림
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+// 화면 폭이 넓은지 (폴드를 펼치거나 돌리면 바로 바뀌어요)
+function useWide() {
+  const q = '(min-width: 760px)';
+  const [wide, setWide] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setWide(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return wide;
+}
+const PANEL_MIN = 300;
+const panelMax = () => Math.max(PANEL_MIN, Math.min(760, Math.round(window.innerWidth * 0.7)));
+const clampPanel = (w) => Math.max(PANEL_MIN, Math.min(panelMax(), Math.round(w)));
 import MapView from '../components/MapView.jsx';
 import Sheet from '../components/Sheet.jsx';
 import PlaceDetail from '../components/PlaceDetail.jsx';
@@ -52,6 +68,14 @@ export default function MapScreen({ go, openBooking }) {
   const [focus, setFocus] = useState(null);
   const [toast, setToast] = useState(null);
   const [gpsHelp, setGpsHelp] = useState(false);
+  const wide = useWide();
+  // 넓은 화면의 오른쪽 일정 패널: 접고 펴기 · 너비 조절 (이 폰에 기억)
+  const [panelOpen, setPanelOpen] = useState(() => getPref('panelOpen', true));
+  const [panelW, setPanelW] = useState(() => clampPanel(getPref('panelW', 420)));
+  const togglePanel = (open) => {
+    setPanelOpen(open);
+    setPref('panelOpen', open);
+  };
   const online = useOnline();
   const [dismissed, setDismissed] = useState(() => getPref(`dismiss:${today}`, []));
   const watch = useRef(null);
@@ -248,7 +272,6 @@ export default function MapScreen({ go, openBooking }) {
 
   const alerts = BOOKINGS.filter((b) => b.date === today && BOOKING_TYPES[b.type].alert && !dismissed.includes(b.id));
   const fitKey = `${dayId}:${variant?.id}`;
-  const wide = window.innerWidth >= 760;
   const sheetPad = wide ? 60 : window.innerHeight * ({ peek: 0.26, half: 0.52, full: 0.6 }[snap] + 0.04);
   const padding = { top: alerts.length && !wide ? 380 : 190, bottom: sheetPad, left: 50, right: 70 };
 
@@ -302,7 +325,7 @@ export default function MapScreen({ go, openBooking }) {
   const selStop = selPlace && stops.find((s) => s.place?.id === selPlace.id);
 
   return (
-    <div className="map-screen has-panel">
+    <div className={`map-screen has-panel${panelOpen ? '' : ' panel-closed'}`} style={{ '--panel-w': `${panelW}px` }}>
       <MapView markers={markers} routes={routes} me={tripGps} landmarks={landmarks} onLandmark={(l) => { if (measure) return pickMeasure(l); setSelected(l.id); setSnap('half'); }} radius={nearby && ref ? { center: ref, km: radiusKm } : null}
         measure={measure} onMarker={onMarker} onMapClick={onMapClick} fitKey={fitKey} padding={padding} onMove={setCenter} focus={focus} />
 
@@ -382,7 +405,11 @@ export default function MapScreen({ go, openBooking }) {
         <button className="fab" style={{ color: 'var(--accent)' }} onClick={() => setNewPlace(true)} aria-label="장소 직접 등록"><Icon name="plus" /></button>
       </div>
 
-      <Sheet snap={snap} onSnap={setSnap}>
+      {wide && !panelOpen && (
+        <button className="panel-tab" onClick={() => togglePanel(true)} aria-label="일정 패널 열기"><Icon name="back" size={14} />일정</button>
+      )}
+      <Sheet snap={snap} onSnap={setSnap}
+        panel={wide ? { onToggle: () => togglePanel(false), onWidth: (w) => setPanelW(clampPanel(w)), onWidthEnd: () => setPref('panelW', panelW) } : null}>
         {measure ? (
           <MeasurePanel m={measure} gps={tripGps} onSwap={() => setMeasure({ a: measure.b, b: measure.a })} onUseGps={() => tripGps && setMeasure({ ...measure, a: { id: 'gps', name: '내 위치', ...tripGps } })} />
         ) : selPlace ? (

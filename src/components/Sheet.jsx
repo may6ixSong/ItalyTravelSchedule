@@ -5,7 +5,7 @@ import { Icon } from './ui.jsx';
 
 const SNAPS = { peek: 0.26, half: 0.52, full: 0.9 };
 
-export default function Sheet({ snap, onSnap, children, header }) {
+export default function Sheet({ snap, onSnap, children, header, panel }) {
   const ref = useRef(null);
   const drag = useRef(null);
   const [h, setH] = useState(null);
@@ -37,6 +37,22 @@ export default function Sheet({ snap, onSnap, children, header }) {
     setH(null);
   };
 
+  // 넓은 화면(폴드 펼침): 왼쪽 가장자리를 끌어서 패널 너비 조절
+  const rs = useRef(null);
+  const rDown = (e) => {
+    rs.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const rMove = (e) => {
+    if (!rs.current || !panel) return;
+    const right = ref.current.getBoundingClientRect().right;
+    panel.onWidth(right - e.clientX);
+  };
+  const rUp = () => {
+    if (rs.current) panel?.onWidthEnd?.();
+    rs.current = null;
+  };
+
   // 목록 안에서 쓸어 올리기 / 내리기
   const swipe = useRef(null);
   const tStart = (e) => {
@@ -66,6 +82,14 @@ export default function Sheet({ snap, onSnap, children, header }) {
         </button>
         {header}
       </div>
+      {panel && (
+        <>
+          <div className="panel-resizer" role="separator" aria-orientation="vertical" aria-label="패널 너비 조절" onPointerDown={rDown} onPointerMove={rMove} onPointerUp={rUp} onPointerCancel={rUp}>
+            <i />
+          </div>
+          <button className="panel-collapse" onClick={panel.onToggle} aria-label="일정 패널 접기"><Icon name="next" size={14} />접기</button>
+        </>
+      )}
       <div className="sheet-body" onTouchStart={tStart} onTouchMove={tMove}>{children}</div>
     </section>
   );
