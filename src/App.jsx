@@ -70,7 +70,7 @@ export default function App() {
             <MapScreen go={go} openBooking={(b) => { setOpenBooking(b.id); go('book'); }} />
           </div>
           {tab === 'book' && (
-            <BookingsScreen tab={sub === 'check' ? 'check' : 'list'} setTab={(t) => go('book', t === 'check' ? 'check' : '')} openId={openBooking} clearOpen={() => setOpenBooking(null)} />
+            <BookingsScreen tab={['check', 'buy'].includes(sub) ? sub : 'list'} setTab={(t) => go('book', t === 'list' ? '' : t)} openId={openBooking} clearOpen={() => setOpenBooking(null)} />
           )}
           {tab === 'money' && <ExpensesScreen />}
           {tab === 'talk' && <PhrasesScreen />}

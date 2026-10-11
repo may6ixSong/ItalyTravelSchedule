@@ -49,6 +49,12 @@ export default defineConfig({
             options: { cacheName: 'offline-tiles', rangeRequests: true, cacheableResponse: { statuses: [200] } },
           },
           {
+            // 쇼핑 목록 제품 사진(Open Food Facts · Open Beauty Facts): 한 번 보면 저장해서 오프라인에서도 보이게
+            urlPattern: /^https:\/\/(images|static)\.open(food|beauty)facts\.org\//,
+            handler: 'CacheFirst',
+            options: { cacheName: 'product-images', expiration: { maxEntries: 300, maxAgeSeconds: 180 * 24 * 3600 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+          {
             // 온라인 지도(타일 파일이 없는 빌드): 본 곳만 임시 저장
             urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
             handler: 'StaleWhileRevalidate',

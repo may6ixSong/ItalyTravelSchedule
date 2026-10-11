@@ -1,4 +1,4 @@
-// 예약 탭: [예약 내역 | 준비 체크리스트]
+// 예약 탭: [예약 내역 | 준비 체크리스트 | 쇼핑 목록]
 import { Fragment, useState } from 'react';
 import { BOOKINGS, BOOKING_TYPES } from '../data/bookings.js';
 import { dayLabel, todayIso } from '../data/itinerary.js';
@@ -7,6 +7,7 @@ import { getPref, setPref } from '../lib/store.js';
 import { usePlaces } from '../lib/places.js';
 import { Icon, Modal, ModalHead, Switch } from '../components/ui.jsx';
 import Checklist from './Checklist.jsx';
+import Shopping from './Shopping.jsx';
 
 const TYPE_ICON = { stay: 'stay', train: 'train', ferry: 'ferry', flight: 'flight', tour: 'tour', car: 'car', meal: 'meal' };
 const TYPE_TINT = { stay: ['#E4E7EA', '#212B33'], train: ['#DDE8F0', '#1F5F8B'], ferry: ['#DDE8F0', '#1F5F8B'], flight: ['#DDE8F0', '#1F5F8B'], tour: ['#FBE6DA', '#C2410C'], car: ['#E4EBDA', '#4F6B2E'], meal: ['#FBE6DA', '#D9480F'] };
@@ -20,10 +21,11 @@ export default function BookingsScreen({ tab, setTab, openId, clearOpen }) {
           <div className="seg" role="tablist">
             <button role="tab" className={tab === 'list' ? 'on' : ''} onClick={() => setTab('list')}>예약 내역</button>
             <button role="tab" className={tab === 'check' ? 'on' : ''} onClick={() => setTab('check')}>준비 체크리스트</button>
+            <button role="tab" className={tab === 'buy' ? 'on' : ''} onClick={() => setTab('buy')}>쇼핑 목록</button>
           </div>
         </div>
       </div>
-      {tab === 'list' ? <BookingList openId={openId} clearOpen={clearOpen} /> : <Checklist />}
+      {tab === 'list' ? <BookingList openId={openId} clearOpen={clearOpen} /> : tab === 'buy' ? <Shopping /> : <Checklist />}
     </div>
   );
 }

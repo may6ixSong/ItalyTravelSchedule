@@ -27,7 +27,9 @@ async function seedOnce() {
 }
 
 export default function Checklist() {
-  const rows = useCollection('checklist');
+  const all = useCollection('checklist');
+  // 쇼핑 목록(group 'buy')은 같은 컬렉션에 있지만 여기서는 빼요
+  const rows = all && all.filter((r) => r.group !== 'buy');
   const users = useUsers();
   const [openGroup, setOpenGroup] = useState('pack');
   const [item, setItem] = useState(null);
