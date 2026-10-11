@@ -10,10 +10,12 @@ export function buildStyle() {
   if (HAS_TILES) {
     const flavor = namedFlavor('light');
     // 저배율(전체 이탈리아)은 overview, 도시 안쪽 고배율은 detail 파일에서 그립니다.
+    // overview는 줌 9까지만 있지만 확대해도 늘려서 계속 그려서, 도시와 도시 사이(detail이 없는 곳)도
+    // 빈 화면 대신 해안선 · 큰 도로가 보이게 합니다. 글자만 줌 10부터 detail 것으로 바꿉니다.
     const ov = layers('overview', flavor, { lang: 'en' }).map((l) => ({
       ...l,
       id: `ov-${l.id}`,
-      maxzoom: Math.min(l.maxzoom ?? 24, 10),
+      ...(l.type === 'symbol' ? { maxzoom: Math.min(l.maxzoom ?? 24, 10) } : {}),
     }));
     const dt = layers('detail', flavor, { lang: 'en' })
       .filter((l) => l.type !== 'background')
