@@ -255,3 +255,11 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .chip.solid .legend-dot .in, .chip.solid .legend-dot::before { box-shadow: 0 0 0 1.5px #fff; }
 .chip .legend-dot.mk-hex .in, .chip .legend-dot.mk-house .in { inset: 1px; }
 .card.item { background: var(--surface); border: 1px solid #e8e3d8; }
+
+/* 장소 메모: 마커의 노란 점 · 시트의 메모 상자 */
+.mk-note { position: absolute; top: -5px; right: -5px; width: 13px; height: 13px; border-radius: 50%; background: #f2b705; border: 2px solid #fff; z-index: 2; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+.mk.mini .mk-note { width: 10px; height: 10px; top: -4px; right: -4px; border-width: 1.5px; }
+.mk-diamond .mk-note, .mk-house .mk-note, .mk-hex .mk-note { top: -6px; right: -6px; }
+.note-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #f2b705; margin-right: 6px; flex-shrink: 0; vertical-align: 1px; }
+.note-line { color: #6b5414; display: block; }
+.note-box { background: #fff8e1; border: 1px solid #f1df9e; border-radius: 12px; padding: 10px 12px; color: var(--ink); font: inherit; }

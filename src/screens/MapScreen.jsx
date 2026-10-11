@@ -11,6 +11,7 @@ import { usePlaces } from '../lib/places.js';
 import { directionsUrl, distanceKm, formatKm, walkMinutes } from '../lib/geo.js';
 import { getPref, setPref } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
+import { useNotes } from '../lib/notes.js';
 import { hasFirebase, HAS_TILES } from '../config.js';
 
 const LETTERS = 'ABCDEFGHIJ';
@@ -19,6 +20,7 @@ const STAY_ROUTE = ['rm-fco', 'rm-hotel', 'na-hotel', 'po-hotel', 'fi-hotel', 't
 export default function MapScreen({ go, openBooking }) {
   const me = useMe();
   const { byId } = usePlaces();
+  const notes = useNotes();
   const today = todayIso();
   const [dayId, setDayId] = useState(() => DAYS.find((d) => d.date === today)?.id || getPref('day', 'all'));
   const [filters, setFilters] = useState([]);
@@ -110,28 +112,28 @@ export default function MapScreen({ go, openBooking }) {
         // 같은 도시에 두 번 묵으면(피렌체) 마커 하나에 번호를 같이 표시
         const near = out.find((m) => distanceKm(m, p) < 3);
         if (near) return void (near.label = `${near.label}·${i + 1}`);
-        out.push({ id, title: p.name, lat: p.lat, lng: p.lng, cat: 'stay', label: i + 1, caption: CITIES[p.city].label, color: CITIES[p.city].color, kind: 'k-stop big', selected: selected === id });
+        out.push({ id, title: p.name, lat: p.lat, lng: p.lng, cat: 'stay', label: i + 1, caption: CITIES[p.city].label, color: CITIES[p.city].color, kind: 'k-stop big', note: !!notes[id], selected: selected === id });
       });
     } else {
       for (const s of stops) {
         if (!s.place || s.repeat) continue;
-        out.push({ id: s.place.id, title: s.place.name, lat: s.place.lat, lng: s.place.lng, cat: s.place.cat, label: s.n, caption: s.title.length > 14 ? s.title.slice(0, 13) + '…' : s.title, kind: 'k-stop', selected: selected === s.place.id, dim: candidates.length > 0 && !selected });
+        out.push({ id: s.place.id, title: s.place.name, lat: s.place.lat, lng: s.place.lng, cat: s.place.cat, label: s.n, caption: s.title.length > 14 ? s.title.slice(0, 13) + '…' : s.title, kind: 'k-stop', note: !!notes[s.place.id], selected: selected === s.place.id, dim: candidates.length > 0 && !selected });
       }
     }
     const many = candidates.length > 18;
     candidates.forEach(({ p }) => {
       const pi = plan.indexOf(p.id);
-      out.push({ id: p.id, title: p.name, lat: p.lat, lng: p.lng, cat: p.cat, label: pi >= 0 ? LETTERS[pi] : null, caption: many && pi < 0 ? null : p.name, kind: `cand${pi >= 0 ? ' plan' : ''}`, selected: selected === p.id, noFit: true });
+      out.push({ id: p.id, title: p.name, lat: p.lat, lng: p.lng, cat: p.cat, label: pi >= 0 ? LETTERS[pi] : null, caption: many && pi < 0 ? null : p.name, kind: `cand${pi >= 0 ? ' plan' : ''}`, note: !!notes[p.id], selected: selected === p.id, noFit: true });
     });
     plan.forEach((id, i) => {
       if (out.some((m) => m.id === id)) return;
       const p = byId[id];
-      if (p) out.push({ id, title: p.name, lat: p.lat, lng: p.lng, cat: p.cat, label: LETTERS[i], caption: p.name, kind: 'cand plan', selected: selected === id });
+      if (p) out.push({ id, title: p.name, lat: p.lat, lng: p.lng, cat: p.cat, label: LETTERS[i], caption: p.name, kind: 'cand plan', note: !!notes[id], selected: selected === id });
     });
     if (measure?.a && !byId[measure.a.id]) out.push({ ...measure.a, cat: 'transit', label: 'A', kind: 'big', noFit: true });
     if (measure?.b && !byId[measure.b.id]) out.push({ ...measure.b, cat: 'transit', label: 'B', kind: 'big', noFit: true, color: '#1F5F8B' });
     return out;
-  }, [dayId, stops, candidates, plan, selected, byId, measure]);
+  }, [dayId, stops, candidates, plan, selected, byId, measure, notes]);
 
   const routes = useMemo(() => {
     if (dayId === 'all') return [{ coords: STAY_ROUTE.map((id) => [byId[id].lng, byId[id].lat]), color: '#3B4650' }];
@@ -270,12 +272,12 @@ export default function MapScreen({ go, openBooking }) {
           <>
             {plan.length > 0 && <PlanCard plan={plan} byId={byId} onClear={() => setPlan([])} onPick={(id) => { setSelected(id); setSnap('half'); }} />}
             {candidates.length > 0 || nearby ? (
-              <CandidateList list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
+              <CandidateList notes={notes} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
                 onPick={(id) => { setSelected(id); setSnap('half'); setFocus({ ...byId[id], key: Date.now() }); }} onPlan={dayId !== 'all' ? togglePlan : null} />
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
             ) : (
-              <DayList stops={stops} onPick={(p) => { setSelected(p.id); setSnap('half'); setFocus({ ...p, key: Date.now() }); }} />
+              <DayList notes={notes} stops={stops} onPick={(p) => { setSelected(p.id); setSnap('half'); setFocus({ ...p, key: Date.now() }); }} />
             )}
           </>
         )}
@@ -315,7 +317,15 @@ function TodayAlert({ b, place, onDismiss, onOpen }) {
   );
 }
 
-function DayList({ stops, onPick }) {
+function NoteLine({ text }) {
+  return (
+    <span className="note-line small" style={{ paddingLeft: 50 }}>
+      <span className="note-dot" aria-hidden="true" />{text}
+    </span>
+  );
+}
+
+function DayList({ stops, onPick, notes }) {
   const placed = stops.filter((s) => s.place && !s.repeat).length;
   return (
     <>
@@ -333,6 +343,7 @@ function DayList({ stops, onPick }) {
               {s.tag === 'confirmed' ? <span className="badge ok">확정</span> : <span className="badge warn">추천</span>}
             </span>
             {s.note && <span className="small muted" style={{ paddingLeft: 50 }}>{s.note}</span>}
+            {s.place && notes[s.place.id] && <NoteLine text={notes[s.place.id].text} />}
           </span>
         </button>
       ))}
@@ -361,7 +372,7 @@ function TripList({ byId, onDay }) {
   );
 }
 
-function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan }) {
+function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan, notes }) {
   return (
     <>
       <div className="row" style={{ marginBottom: 8 }}>
@@ -379,6 +390,7 @@ function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan })
                 <span className="grow">
                   <span style={{ display: 'block', fontWeight: 600, fontSize: '0.92rem' }}>{p.name}</span>
                   <span className="small muted">{CATEGORIES[p.cat].label} · {formatKm(d)} · 도보 {walkMinutes(d)}분{p.note ? ` · ${p.note}` : ''}</span>
+                  {notes[p.id] && <NoteLine text={notes[p.id].text} />}
                 </span>
               </button>
               {onPlan && (
@@ -468,6 +480,11 @@ function Legend({ onClose }) {
             <div>{c.filter ? <MiniMarker cat={id} /> : <span className="muted">—</span>}</div>
           </div>
         ))}
+        <div className="legend-row">
+          <div><div className="bold">메모 있음</div><div className="tiny muted">장소에 우리가 쓴 메모가 있으면 노란 점</div></div>
+          <div><span className="mk mini mk-diamond" style={{ '--c': '#0B7285' }}><span className="in"><span>3</span></span><span className="mk-note" /></span></div>
+          <div />
+        </div>
       </div>
     </Modal>
   );

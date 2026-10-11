@@ -6,6 +6,7 @@ import { directionsUrl, distanceKm, formatKm, placeUrl, walkMinutes } from '../l
 import { shrinkImage } from '../lib/images.js';
 import { add, remove, useCollection, useWhere } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
+import { saveNote, useNotes } from '../lib/notes.js';
 import { Avatar, Icon, MiniMarker, Modal, ModalHead, Stars } from './ui.jsx';
 
 export function useUsers() {
@@ -106,6 +107,8 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
         </section>
       )}
 
+      <PlaceNote place={place} users={users} />
+
       <section style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--line-2)', paddingTop: 12 }}>
         <div className="row">
           <b className="grow">우리 기록 {records.length > 0 && <span className="muted">{records.length}</span>}</b>
@@ -124,6 +127,51 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
         </Modal>
       )}
     </div>
+  );
+}
+
+function PlaceNote({ place, users }) {
+  const me = useMe();
+  const note = useNotes()[place.id];
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState('');
+  const start = () => {
+    setText(note?.text || '');
+    setEditing(true);
+  };
+  const save = () => {
+    saveNote(place.id, text, me.uid);
+    setEditing(false);
+  };
+  if (editing) {
+    return (
+      <div className="note-box" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <b className="small">우리 메모 · 두 사람이 같이 봐요</b>
+        <textarea className="input" rows={3} autoFocus value={text} onChange={(e) => setText(e.target.value)}
+          placeholder="예: 다비드 진품 대신 여기 복제품 보기" aria-label="장소 메모" />
+        <div className="row">
+          {note && <button className="btn small ghost" style={{ color: 'var(--danger)' }} onClick={() => { saveNote(place.id, '', me.uid); setEditing(false); }}>메모 지우기</button>}
+          <span className="grow" />
+          <button className="btn small" onClick={() => setEditing(false)}>취소</button>
+          <button className="btn small primary" onClick={save} disabled={!text.trim()}>저장</button>
+        </div>
+      </div>
+    );
+  }
+  if (!note) {
+    return (
+      <button className="btn small ghost" style={{ alignSelf: 'flex-start', borderStyle: 'dashed' }} onClick={start}>
+        <Icon name="edit" size={14} />이 장소에 메모 쓰기
+      </button>
+    );
+  }
+  const who = users[note.by];
+  return (
+    <button className="note-box" onClick={start} style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }} aria-label="메모 고치기">
+      <span className="row small bold" style={{ gap: 6 }}><span className="note-dot" aria-hidden="true" />우리 메모<span className="grow" /><Icon name="edit" size={14} /></span>
+      <span style={{ whiteSpace: 'pre-wrap', lineHeight: 1.55, fontSize: '0.92rem' }}>{note.text}</span>
+      <span className="tiny muted">{who?.name || ''} · {new Date(note.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+    </button>
   );
 }
 

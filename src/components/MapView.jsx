@@ -34,7 +34,8 @@ function markerEl(m, onClick) {
     m.label != null
       ? `<span>${m.label}</span>`
       : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON[m.cat] || ''}"/></svg>`;
-  el.innerHTML = `<span class="in">${inner}</span>${m.caption ? `<span class="mk-label"></span>` : ''}`;
+  el.innerHTML = `<span class="in">${inner}</span>${m.note ? '<span class="mk-note" aria-hidden="true"></span>' : ''}${m.caption ? `<span class="mk-label"></span>` : ''}`;
+  if (m.note) el.setAttribute('aria-label', `${m.title || m.caption || ''} (메모 있음)`);
   if (m.caption) el.querySelector('.mk-label').textContent = m.caption;
   el.addEventListener('click', (e) => {
     e.stopPropagation();
