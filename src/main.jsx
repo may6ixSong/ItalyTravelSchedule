@@ -5,6 +5,7 @@ import '@fontsource/ibm-plex-sans-kr/400.css';
 import '@fontsource/ibm-plex-sans-kr/600.css';
 import '@fontsource/ibm-plex-sans-kr/700.css';
 import './styles.css';
+import './lib/install.js'; // 설치 이벤트를 화면보다 먼저 잡기
 import App from './App.jsx';
 
 // 오프라인 캐시(서비스 워커). 새 버전이 배포되면 다음에 열 때 자동으로 바뀝니다.

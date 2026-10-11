@@ -6,6 +6,7 @@ import { shrinkImage } from '../lib/images.js';
 import { COLORS, updateMe, useMe } from '../lib/user.js';
 import { useUsers } from '../components/PlaceDetail.jsx';
 import { Avatar, Icon } from '../components/ui.jsx';
+import InstallCard from '../components/InstallCard.jsx';
 
 export default function MeScreen({ setMe }) {
   const me = useMe();
@@ -49,6 +50,7 @@ export default function MeScreen({ setMe }) {
     <div className="scroll">
       <div className="top"><div className="top-inner"><div className="row"><h1 className="grow">나</h1>{IS_DEV && <span className="badge dev">DEV · {me.name}</span>}</div></div></div>
       <div className="page">
+        <InstallCard />
         <section className="card pad" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="row">
             <label style={{ cursor: 'pointer' }} aria-label="사진 바꾸기"><Avatar user={me} size={64} /><input type="file" accept="image/*" hidden onChange={pick} /></label>

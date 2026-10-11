@@ -5,6 +5,7 @@ import { JOIN_CODE } from '../config.js';
 import { shrinkImage } from '../lib/images.js';
 import { COLORS, register } from '../lib/user.js';
 import { Icon } from '../components/ui.jsx';
+import InstallCard from '../components/InstallCard.jsx';
 
 export default function Onboarding({ onDone }) {
   const [step, setStep] = useState('code');
@@ -33,6 +34,7 @@ export default function Onboarding({ onDone }) {
           </div>
           <h1 style={{ margin: 0, textAlign: 'center', fontSize: '1.6rem' }}>ItalyTravel</h1>
           <p className="muted" style={{ textAlign: 'center', margin: '8px 0 0' }}>10.20 – 11.1 · 로마 · 나폴리 · 포지타노 · 피렌체</p>
+          <InstallCard style={{ marginTop: 16, background: '#fff' }} />
           <div style={{ marginTop: '9vh', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
             <b>입장 코드 4자리</b>
             <div className="code-boxes" aria-label="입력한 코드">
