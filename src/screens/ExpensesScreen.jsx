@@ -1,10 +1,11 @@
 // 가계부: 지금까지 쓴 돈 · 날짜별 · 테마별 · 정산 · 환율 설정. 유로는 기록할 때 고른 환율로 원화를 계산해 저장합니다.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { THEMES, THEME_BY_ID } from '../data/expenseThemes.js';
 import { dayLabel, todayIso } from '../data/itinerary.js';
 import { TRIP } from '../config.js';
 import { DEFAULT_RATE_SETTINGS, eur, lotBalances, refreshRate, useLiveRate, won } from '../lib/rates.js';
-import { add, patch, put, remove, useCollection, useDoc } from '../lib/store.js';
+import { add, getOne, patch, put, remove, useCollection, useDoc } from '../lib/store.js';
+import { EXPENSE_SEED } from '../data/expenseSeed.js';
 import { useMe } from '../lib/user.js';
 import { useUsers } from '../components/PlaceDetail.jsx';
 import { Avatar, Icon, Modal, ModalHead, Switch } from '../components/ui.jsx';
@@ -18,6 +19,26 @@ function useRateSettings() {
   return { ...DEFAULT_RATE_SETTINGS, ...(doc || {}) };
 }
 
+// 미리 결제한 경비를 처음 한 번만 넣기 (이미 있는 id는 건드리지 않아요)
+let seeding = null;
+function seedPrepaidOnce(rows, liveRate, uid) {
+  seeding ||= (async () => {
+    const meta = await getOne('settings', 'meta');
+    if (meta?.expensesSeeded) return;
+    const have = new Set(rows.map((r) => r.id));
+    const at = Date.now();
+    await Promise.all(EXPENSE_SEED.filter((e) => !have.has(e.id)).map(({ id, ...e }, i) => {
+      const krw = e.currency === 'EUR' ? Math.round(e.amount * liveRate) : e.amount;
+      return put('expenses', id, {
+        ...e, krw, rate: e.currency === 'EUR' ? liveRate : null, rateType: e.currency === 'EUR' ? 'live' : null, lotId: '', lotEur: 0,
+        payment: 'card', payer: '', prepaid: true, by: uid, at: at + i,
+      });
+    }));
+    await patch('settings', 'meta', { expensesSeeded: true });
+  })();
+  return seeding;
+}
+
 export default function ExpensesScreen() {
   const rows = useCollection('expenses');
   const users = useUsers();
@@ -26,6 +47,13 @@ export default function ExpensesScreen() {
   const [rates, setRates] = useState(false);
   const today = todayIso();
   const list = rows || [];
+  const me = useMe();
+  const live = useLiveRate();
+  const rateDoc = useDoc('settings', 'rates');
+  useEffect(() => {
+    // 목록 · 환율 설정 · 실제 환율을 다 받은 뒤에 (유로 항목을 원화로 바꿔야 해서)
+    if (rows && rateDoc !== undefined && live.at > 0) seedPrepaidOnce(rows, live.rate + Number((rateDoc || DEFAULT_RATE_SETTINGS).markup ?? 3), me.uid);
+  }, [rows === null, rateDoc === undefined, live.at > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const total = list.reduce((s, e) => s + (e.krw || 0), 0);
   const prepaid = list.filter((e) => e.prepaid).reduce((s, e) => s + (e.krw || 0), 0);
