@@ -8,9 +8,9 @@ import { usePlaces } from '../lib/places.js';
 import { Icon, Modal, ModalHead, Switch } from '../components/ui.jsx';
 import Checklist from './Checklist.jsx';
 
-const TYPE_ICON = { stay: 'stay', train: 'train', ferry: 'ferry', flight: 'flight', tour: 'tour', car: 'car' };
-const TYPE_TINT = { stay: ['#E4E7EA', '#212B33'], train: ['#DDE8F0', '#1F5F8B'], ferry: ['#DDE8F0', '#1F5F8B'], flight: ['#DDE8F0', '#1F5F8B'], tour: ['#FBE6DA', '#C2410C'], car: ['#E4EBDA', '#4F6B2E'] };
-const FILTERS = [['all', '전체'], ['stay', '숙소'], ['move', '교통'], ['tour', '투어']];
+const TYPE_ICON = { stay: 'stay', train: 'train', ferry: 'ferry', flight: 'flight', tour: 'tour', car: 'car', meal: 'meal' };
+const TYPE_TINT = { stay: ['#E4E7EA', '#212B33'], train: ['#DDE8F0', '#1F5F8B'], ferry: ['#DDE8F0', '#1F5F8B'], flight: ['#DDE8F0', '#1F5F8B'], tour: ['#FBE6DA', '#C2410C'], car: ['#E4EBDA', '#4F6B2E'], meal: ['#FBE6DA', '#D9480F'] };
+const FILTERS = [['all', '전체'], ['stay', '숙소'], ['move', '교통'], ['tour', '투어 · 식당']];
 
 export default function BookingsScreen({ tab, setTab, openId, clearOpen }) {
   return (
@@ -34,7 +34,7 @@ function BookingList({ openId, clearOpen }) {
   const [showPast, setShowPast] = useState(false);
   const [open, setOpen] = useState(() => BOOKINGS.find((b) => b.id === openId) || null);
   const [, force] = useState(0);
-  const items = BOOKINGS.filter((b) => filter === 'all' || (filter === 'move' ? ['train', 'ferry', 'flight', 'car'].includes(b.type) : b.type === filter));
+  const items = BOOKINGS.filter((b) => filter === 'all' || (filter === 'move' ? ['train', 'ferry', 'flight', 'car'].includes(b.type) : filter === 'tour' ? ['tour', 'meal'].includes(b.type) : b.type === filter));
   const past = items.filter((b) => (b.endDate || b.date) < today);
   const rest = items.filter((b) => !past.includes(b));
   const shown = showPast ? items : rest;

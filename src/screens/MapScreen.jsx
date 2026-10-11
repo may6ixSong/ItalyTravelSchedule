@@ -12,12 +12,13 @@ import { directionsUrl, distanceKm, formatKm, walkMinutes } from '../lib/geo.js'
 import { getPref, patch, setPref, useDoc } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
 import { useNotes } from '../lib/notes.js';
-import { chooseVariant, useVariants } from '../lib/variants.js';
+import { chooseVariant, usePlaceDays, useVariants } from '../lib/variants.js';
 import VariantEditor from '../components/VariantEditor.jsx';
 import PlaceEditor from '../components/PlaceEditor.jsx';
 import { hasFirebase, HAS_TILES } from '../config.js';
 
 const LETTERS = 'ABCDEFGHIJ';
+const OTHER = 'otherDays'; // 필터: 다른 날 일정에 있는 장소
 // 후보는 내 위치(GPS) 또는 그날 일정 장소에서 이 거리 안만 보여줘요. 로마에 있을 때 피렌체 식당이 안 나오게.
 const SCOPE_KM = 30;
 const STAY_ROUTE = ['rm-fco', 'rm-hotel', 'na-hotel', 'po-hotel', 'fi-hotel', 'tu-hotel', 'fi-hotel2', 'rm-fco'];
@@ -47,6 +48,9 @@ export default function MapScreen({ go, openBooking }) {
 
   const day = DAYS.find((d) => d.id === dayId);
   const { list: variants, active: variant } = useVariants(day);
+  // 다른 날 일정에 들어 있는 장소 (그날 못 가면 오늘 후보로)
+  const placeDays = usePlaceDays();
+  const otherDays = useCallback((id) => (placeDays[id] || []).filter((x) => x !== dayId), [placeDays, dayId]);
 
   // 앱을 켜둔 채 날짜가 바뀌면(자정 지나 다시 열 때) 오늘 날짜로 이동
   const lastToday = useRef(today);
@@ -131,14 +135,16 @@ export default function MapScreen({ go, openBooking }) {
   const scopeLabel = nearby ? null : allCities || !anchors.length ? '전체 도시' : gps ? `내 위치에서 ${SCOPE_KM}km` : `${CITIES[day.city].label} 일정 근처 ${SCOPE_KM}km`;
   const candidates = useMemo(() => {
     if (!filters.length && !nearby) return [];
-    const cats = filters.length ? filters : Object.keys(CATEGORIES).filter((c) => CATEGORIES[c].filter);
+    const catFilters = filters.filter((f) => f !== OTHER);
+    const cats = catFilters.length || filters.includes(OTHER) ? catFilters : Object.keys(CATEGORIES).filter((c) => CATEGORIES[c].filter);
+    const want = (p) => cats.includes(p.cat) || (filters.includes(OTHER) && p.cat !== 'stay' && p.cat !== 'transit' && otherDays(p.id).length > 0);
     const near = (p) => (anchors.length ? Math.min(...anchors.map((a) => distanceKm(a, p))) : 0);
     return places
-      .filter((p) => cats.includes(p.cat) && !stopPlaceIds.has(p.id))
+      .filter((p) => want(p) && !stopPlaceIds.has(p.id))
       .map((p) => ({ p, d: ref ? distanceKm(ref, p) : near(p) }))
       .filter(({ d }) => (ref ? d <= radiusKm : allCities || !anchors.length || d <= SCOPE_KM))
       .sort((a, b) => a.d - b.d);
-  }, [filters, nearby, places, ref?.lat, ref?.lng, radiusKm, anchors, allCities]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, nearby, places, otherDays, ref?.lat, ref?.lng, radiusKm, anchors, allCities]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ----- 마커 · 선 ----- */
   const markers = useMemo(() => {
@@ -174,7 +180,8 @@ export default function MapScreen({ go, openBooking }) {
 
   const routes = useMemo(() => {
     if (dayId === 'all') return [{ coords: STAY_ROUTE.map((id) => [byId[id].lng, byId[id].lat]), color: '#3B4650' }];
-    const r = [{ coords: stops.filter((s) => s.place && !s.repeat).map((s) => [s.place.lng, s.place.lat]), color: CITIES[day.city].color }];
+    // 숙소로 돌아오는 마지막 구간까지 선으로 이어요
+    const r = [{ coords: stops.filter((s) => s.place).map((s) => [s.place.lng, s.place.lat]), color: CITIES[day.city].color }];
     if (plan.length > 1) r.push({ coords: plan.map((id) => byId[id]).filter(Boolean).map((p) => [p.lng, p.lat]), color: '#C2410C', width: 3.5 });
     return r;
   }, [dayId, stops, plan, byId, day]);
@@ -281,6 +288,11 @@ export default function MapScreen({ go, openBooking }) {
                 <MiniMarker cat={id} label="" className="legend-dot" />{c.label}
               </button>
             ))}
+            {dayId !== 'all' && (
+              <button className={`chip floating ${filters.includes(OTHER) ? 'on' : ''}`} style={{ '--c': '#1F5F8B' }} onClick={() => toggleFilter(OTHER)}>
+                <Icon name="clock" size={14} />다른 날 일정
+              </button>
+            )}
           </div>
           {nearby && (
             <div className="map-filters">
@@ -314,7 +326,7 @@ export default function MapScreen({ go, openBooking }) {
           <>
             {plan.length > 0 && <PlanCard plan={plan} byId={byId} onClear={() => setPlan([])} onPick={(id) => { setSelected(id); setSnap('half'); }} />}
             {candidates.length > 0 || nearby ? (
-              <CandidateList notes={notes} scopeLabel={scopeLabel} allCities={allCities} onAllCities={() => setAllCities(!allCities)} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
+              <CandidateList otherDays={otherDays} notes={notes} scopeLabel={scopeLabel} allCities={allCities} onAllCities={() => setAllCities(!allCities)} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
                 onPick={(id) => { setSelected(id); setSnap('half'); setFocus({ ...byId[id], key: Date.now() }); }} onPlan={dayId !== 'all' ? togglePlan : null} />
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
@@ -328,7 +340,7 @@ export default function MapScreen({ go, openBooking }) {
 
       {legend && <Legend onClose={() => setLegend(false)} />}
       {newPlace && (
-        <PlaceEditor city={day?.city} cat={filters[0]} onClose={() => setNewPlace(false)}
+        <PlaceEditor city={day?.city} cat={filters.find((f) => CATEGORIES[f])} onClose={() => setNewPlace(false)}
           onSaved={(p) => { setSelected(p.id); setSnap('half'); setFocus({ lat: p.lat, lng: p.lng, zoom: 15, key: Date.now() }); if (!filters.includes(p.cat) && CATEGORIES[p.cat].filter && !stopPlaceIds.has(p.id)) setFilters((f) => [...f, p.cat]); }} />
       )}
       {editor && day && (
@@ -433,7 +445,7 @@ function TripList({ byId, onDay }) {
   );
 }
 
-function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan, notes, scopeLabel, allCities, onAllCities }) {
+function CandidateList({ otherDays, list, plan, nearby, radiusKm, hasGps, onPick, onPlan, notes, scopeLabel, allCities, onAllCities }) {
   return (
     <>
       <div className="row" style={{ marginBottom: 8 }}>
@@ -454,7 +466,10 @@ function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan, n
                 <MiniMarker cat={p.cat} />
                 <span className="grow">
                   <span style={{ display: 'block', fontWeight: 600, fontSize: '0.92rem' }}>{p.name}</span>
-                  <span className="small muted">{CATEGORIES[p.cat]?.label} · {formatKm(d)} · 도보 {walkMinutes(d)}분{p.note ? ` · ${p.note}` : ''}</span>
+                  <span className="small muted">
+                    {otherDays(p.id).map((id) => <span key={id} className="badge" style={{ marginRight: 4 }}>{dayLabel(DAYS.find((x) => x.id === id).date).md} 일정</span>)}
+                    {CATEGORIES[p.cat]?.label} · {formatKm(d)} · 도보 {walkMinutes(d)}분{p.note ? ` · ${p.note}` : ''}
+                  </span>
                   {notes[p.id] && <NoteLine text={notes[p.id].text} />}
                 </span>
               </button>
@@ -531,7 +546,7 @@ function Slot({ letter, label, value, active, action }) {
 }
 
 function Legend({ onClose }) {
-  const samples = { meal: 8, pub: 9, cafe: 2, gelato: 5, sight: 3, spot: 4, shop: 6, stay: null, transit: null };
+  const samples = { meal: 8, snack: 4, drink: 9, cafe: 2, dessert: 5, sight: 3, shop: 6, stay: 1, transit: null };
   return (
     <Modal onClose={onClose} label="지도 마커 안내">
       <ModalHead title="지도 마커 안내" onClose={onClose} />

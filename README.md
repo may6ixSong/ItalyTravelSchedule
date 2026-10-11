@@ -76,8 +76,8 @@ const firebaseConfig = {
 
 | 파일 | 내용 |
 |---|---|
-| `src/data/places.js` | 장소 목록 (이름 · 종류 · 좌표 · 주소 · 메모 · Place ID) |
-| `src/data/itinerary.js` | 날짜별 일정 (순서대로 번호 마커) |
+| `src/data/places.js` | 장소 목록 (이름 · 분류 · 좌표 · 구글맵 링크 · 메모). 분류: 식당 · 요깃거리 · 술 · 카페 · 디저트 · 관광지 · 쇼핑 · 숙소 · 교통 |
+| `src/data/itinerary.js` | 날짜별 일정 (순서대로 번호 마커, 처음과 끝은 숙소) |
 | `src/data/bookings.js` | 숙소 · 기차 · 페리 · 항공 · 투어 · 렌터카 예약 (당일 알림) |
 | `src/data/checklistSeed.js` | 체크리스트 처음 항목 (앱에서 추가 · 수정 가능) |
 | `src/data/phrases.js` | 여행 이탈리아어 |

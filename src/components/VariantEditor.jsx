@@ -11,6 +11,7 @@ import { Icon, MiniMarker, Modal, ModalHead } from './ui.jsx';
 
 const toEditable = (stops) => stops.map((s) => ({ place: s.place || null, time: s.time || '', title: s.title || '', note: s.note || '', tag: s.tag === 'confirmed' ? 'confirmed' : 'suggested' }));
 const small = { minHeight: 32, fontSize: '0.8rem', padding: '0 8px' };
+const stopName = (s) => (s?.title || '').slice(0, 14);
 
 export default function VariantEditor({ day, base, editing, onClose, onSaved }) {
   const me = useMe();
@@ -18,7 +19,7 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
   const override = editing && !editing.custom; // 코드 일정 고치기
   const [label, setLabel] = useState(editing?.label || (base ? `${base.label} (수정)` : '우천시'));
   const [stops, setStops] = useState(() => toEditable(editing?.stops || base?.stops || []));
-  const [picking, setPicking] = useState(false);
+  const [picking, setPicking] = useState(null); // 끼워 넣을 위치(index)
   const upd = (i, k, v) => setStops((x) => x.map((y, j) => (j === i ? { ...y, [k]: v } : y)));
 
   const move = (i, d) => setStops((s) => {
@@ -28,6 +29,10 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
     [n[i], n[j]] = [n[j], n[i]];
     return n;
   });
+  // 맨 끝이 숙소면 그 앞에 넣기 (하루의 끝은 숙소)
+  const tailPos = () => (stops.length && byId[stops[stops.length - 1].place]?.cat === 'stay' ? stops.length - 1 : stops.length);
+  const blank = { place: null, time: '', title: '', note: '', tag: 'suggested' };
+  const insertAt = (pos, item) => setStops((x) => [...x.slice(0, pos), item, ...x.slice(pos)]);
   const clean = () => stops.filter((s) => s.place || s.title.trim()).map((s) => ({ ...s, title: s.title.trim() || byId[s.place]?.name || '' }));
   const save = () => {
     if (override) {
@@ -59,13 +64,20 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
       {override && <span className="tiny muted" style={{ marginTop: -6 }}>고친 내용은 두 폰에 공유되고, 언제든 원래 일정으로 되돌릴 수 있어요.</span>}
 
       <div className="field">
-        <span>일정 {stops.length}개 · 화살표로 순서 바꾸기</span>
+        <span>일정 {stops.length}개 · 사이의 + 로 끼워 넣기 · 화살표로 순서 바꾸기</span>
         <div className="card list">
           {stops.length === 0 && <div className="empty" style={{ padding: 16 }}>아래에서 장소나 항목을 추가하세요</div>}
           {stops.map((s, i) => {
             const p = s.place ? byId[s.place] : null;
             return (
-              <div key={i} className="item" style={{ gap: 8, padding: '8px 10px', alignItems: 'flex-start' }}>
+              <div key={i}>
+              {i > 0 && (
+                <div className="insert-row">
+                  <button onClick={() => setPicking(i)} aria-label={`${i}번과 ${i + 1}번 사이에 장소 넣기`}><Icon name="plus" size={13} />장소</button>
+                  <button onClick={() => insertAt(i, { ...blank })} aria-label={`${i}번과 ${i + 1}번 사이에 항목 넣기`}><Icon name="plus" size={13} />항목</button>
+                </div>
+              )}
+              <div className="item" style={{ gap: 8, padding: '8px 10px', alignItems: 'flex-start' }}>
                 <span style={{ paddingTop: 6 }}>
                   {p ? <MiniMarker cat={p.cat} label={i + 1} /> : <span className="mk mini mk-circle" style={{ '--c': '#b8af9e' }}><span className="in"><span>{i + 1}</span></span></span>}
                 </span>
@@ -88,12 +100,13 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
                   <button className="icon-btn" style={{ width: 34, height: 34, color: 'var(--danger)' }} onClick={() => setStops((x) => x.filter((_, j) => j !== i))} aria-label="빼기"><Icon name="x" size={16} /></button>
                 </div>
               </div>
+              </div>
             );
           })}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-          <button className="btn" onClick={() => setPicking(true)}><Icon name="pin" size={16} />장소 추가</button>
-          <button className="btn" onClick={() => setStops((x) => [...x, { place: null, time: '', title: '', note: '', tag: 'suggested' }])}><Icon name="plus" size={16} />장소 없는 항목</button>
+          <button className="btn" onClick={() => setPicking(tailPos())}><Icon name="pin" size={16} />장소 추가</button>
+          <button className="btn" onClick={() => insertAt(tailPos(), { ...blank })}><Icon name="plus" size={16} />장소 없는 항목</button>
         </div>
       </div>
 
@@ -106,13 +119,16 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
         )}
         <button className="btn primary grow" onClick={save} disabled={!clean().length}>저장 · 두 폰에 공유</button>
       </div>
-      {picking && <PlacePicker city={day.city} places={places} chosen={stops.map((s) => s.place)} onClose={() => setPicking(false)}
-        onPick={(p) => setStops((x) => [...x, { place: p.id, time: '', title: p.name, note: '', tag: 'suggested' }])} />}
+      {picking != null && (
+        <PlacePicker city={day.city} places={places} chosen={stops.map((s) => s.place)} onClose={() => setPicking(null)}
+          where={picking === 0 ? '맨 앞에 넣어요' : picking >= stops.length ? '맨 끝에 넣어요' : `${picking}번 ${stopName(stops[picking - 1])} 다음에 넣어요`}
+          onPick={(p) => { insertAt(picking, { ...blank, place: p.id, title: p.name }); setPicking(picking + 1); }} />
+      )}
     </Modal>
   );
 }
 
-function PlacePicker({ city, places, chosen, onPick, onClose }) {
+function PlacePicker({ city, places, chosen, onPick, onClose, where }) {
   const [creating, setCreating] = useState(false);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('');
@@ -125,7 +141,7 @@ function PlacePicker({ city, places, chosen, onPick, onClose }) {
   }, [places, q, cat, city, allCities]);
   return (
     <Modal onClose={onClose} label="장소 고르기">
-      <ModalHead title="장소 고르기" sub={allCities ? '전체 도시' : CITIES[city].label} onClose={onClose} />
+      <ModalHead title="장소 고르기" sub={`${allCities ? '전체 도시' : CITIES[city].label}${where ? ` · ${where}` : ''}`} onClose={onClose} />
       <input className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름으로 찾기" aria-label="장소 찾기" />
       <div className="chips">
         <button className={`chip ${!cat ? 'solid' : ''}`} onClick={() => setCat('')}>전체</button>

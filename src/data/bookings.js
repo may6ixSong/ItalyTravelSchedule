@@ -8,16 +8,17 @@ export const BOOKING_TYPES = {
   flight: { label: '항공', alert: true },
   tour: { label: '투어', alert: true },
   car: { label: '렌터카', alert: true },
+  meal: { label: '식당 예약', alert: true },
 };
 
 const B = (id, type, date, title, extra = {}) => ({ id, type, date, title, ...extra });
 
 export const BOOKINGS = [
   B('b-flight-out', 'flight', '2026-10-20', '출국 항공편 · 인천 → 로마', { time: '', sub: '18:00쯤 로마 도착', place: 'rm-fco' }),
-  B('b-stay-rome', 'stay', '2026-10-20', '리쇼네 · 로마', { endDate: '2026-10-23', sub: 'Via del Castro Pretorio 14', place: 'rm-hotel' }),
+  B('b-stay-rome', 'stay', '2026-10-20', 'Rishon Malon · 로마', { endDate: '2026-10-23', sub: 'Via del Castro Pretorio 14', place: 'rm-hotel' }),
   B('b-colosseo', 'tour', '2026-10-21', '콜로세움 입장', { time: '13:30', place: 'rm-colosseo' }),
   B('b-vatican', 'tour', '2026-10-22', '바티칸 투어', {
-    time: '08:30', place: 'rm-vatican', sub: '마이리얼트립 · 스킵더라인 + 성 베드로 대성당 + 지하무덤',
+    time: '09:00', place: 'rm-vatican', sub: '마이리얼트립 · 스킵더라인 + 성 베드로 대성당 + 지하무덤',
     detail: [['금액', '147,100원 (투어 62,100 + 스킵더라인 75,000)'], ['현장', '성당 패스트트랙 7유로 · 현금']],
   }),
   B('b-train-rn', 'train', '2026-10-23', '로마 → 나폴리 기차', { time: '12:41', sub: '12:41 – 13:58 · Roma Termini · 45.8€', place: 'rm-termini' }),
@@ -26,10 +27,11 @@ export const BOOKINGS = [
   B('b-ferry-np', 'ferry', '2026-10-26', '나폴리 → 포지타노 페리', { time: '', sub: 'Molo Beverello', place: 'na-beverello' }),
   B('b-stay-positano', 'stay', '2026-10-26', 'Le Sirenuse · 포지타노', { endDate: '2026-10-27', place: 'po-hotel' }),
   B('b-train-nf', 'train', '2026-10-27', '나폴리 → 피렌체 기차', { time: '15:25', sub: '15:25 – 18:31 · Napoli Centrale · 79.8€', place: 'na-centrale' }),
-  B('b-stay-florence', 'stay', '2026-10-27', '리사 하우스 · 피렌체', { endDate: '2026-10-30', place: 'fi-hotel' }),
+  B('b-stay-florence', 'stay', '2026-10-27', '리사하우스 2호점 · 피렌체', { endDate: '2026-10-30', sub: 'Via Luigi Alamanni 35', place: 'fi-hotel' }),
   B('b-car', 'car', '2026-10-30', '피렌체 렌터카 픽업', { time: '', sub: '10/30 – 10/31 반납', place: 'fi-smn' }),
   B('b-stay-chianti', 'stay', '2026-10-30', 'Corte di Valle · 끼안띠', { endDate: '2026-10-31', place: 'tu-hotel' }),
   B('b-stay-florence2', 'stay', '2026-10-31', '호텔 팔라쪼 베키오 · 피렌체', { endDate: '2026-11-01', place: 'fi-hotel2' }),
   B('b-train-fr', 'train', '2026-11-01', '피렌체 → 로마 기차', { time: '11:28', sub: '11:28 – 13:05 · Firenze S.M.N. · 59.8€', place: 'fi-smn' }),
+  B('b-luciano', 'meal', '2026-10-21', 'LUCIANO 점심 예약', { time: '11:30', place: 'rm-luciano' }),
   B('b-flight-in', 'flight', '2026-11-01', '귀국 항공편 · 로마 → 인천', { time: '', place: 'rm-fco' }),
 ];

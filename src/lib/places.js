@@ -5,7 +5,7 @@
 //   - hidden: true면 목록 · 후보에서 숨겨요 (일정에 들어 있으면 일정에는 계속 보여요).
 import { useEffect, useMemo, useState } from 'react';
 import { BASE } from '../config.js';
-import { PLACES, PLACE_BY_ID } from '../data/places.js';
+import { CATEGORIES, LEGACY_CAT, PLACES, PLACE_BY_ID } from '../data/places.js';
 import { patch, useDoc } from './store.js';
 
 let merged = PLACES;
@@ -24,10 +24,12 @@ function load() {
 
 const FIELDS = ['name', 'cat', 'city', 'lat', 'lng', 'gmaps', 'placeId', 'address', 'hours', 'note'];
 
+const fixCat = (c) => (CATEGORIES[c] ? c : CATEGORIES[LEGACY_CAT[c]] ? LEGACY_CAT[c] : c ? 'sight' : c);
+
 export function useUserPlaces() {
   const doc = useDoc('settings', 'userPlaces');
   const out = {};
-  for (const [k, v] of Object.entries(doc || {})) if (v && typeof v === 'object') out[k] = v;
+  for (const [k, v] of Object.entries(doc || {})) if (v && typeof v === 'object') out[k] = { ...v, cat: fixCat(v.cat) };
   return out;
 }
 
@@ -76,8 +78,10 @@ export function parseMapsLink(text) {
   if (!s) return {};
   const out = {};
   const num = '(-?\\d{1,3}\\.\\d+)';
+  // 링크에 좌표가 여러 개 있으면(이전에 본 장소가 같이 남아 있음) 마지막이 이 장소예요
+  const pins = [...s.matchAll(new RegExp(`!3d${num}!4d${num}`, 'g'))];
   const m =
-    s.match(new RegExp(`!3d${num}!4d${num}`)) ||
+    pins[pins.length - 1] ||
     s.match(new RegExp(`[?&](?:q|ll|query|destination|center)=${num},\\s*${num}`)) ||
     s.match(new RegExp(`@${num},${num}`)) ||
     s.match(new RegExp(`^${num}\\s*,\\s*${num}$`));
