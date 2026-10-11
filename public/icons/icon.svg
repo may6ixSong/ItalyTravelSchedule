@@ -1,10 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#ECE7DB"/>
-  <path d="M96 150 L190 120 L322 166 L416 136 L416 362 L322 392 L190 346 L96 376 Z" fill="#fff" stroke="#1B2127" stroke-width="18" stroke-linejoin="round"/>
-  <path d="M190 120 V346 M322 166 V392" stroke="#1B2127" stroke-width="14" opacity=".25"/>
-  <path d="M150 300 C 200 250, 240 300, 280 240 S 350 200, 372 214" fill="none" stroke="#2E5C7A" stroke-width="14" stroke-dasharray="22 18" stroke-linecap="round"/>
-  <circle cx="150" cy="300" r="34" fill="#2E5C7A" stroke="#fff" stroke-width="10"/>
-  <text x="150" y="314" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#fff" text-anchor="middle">1</text>
-  <rect x="340" y="182" width="64" height="64" rx="16" fill="#D9480F" stroke="#fff" stroke-width="10"/>
-  <text x="372" y="229" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE3C9"/>
+      <stop offset="1" stop-color="#FFC9D3"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g transform="translate(0.0 0.0) scale(1.0)">
+  <g>
+  <!-- 반짝이 -->
+  <path d="M96 118 l10 24 24 10 -24 10 -10 24 -10 -24 -24 -10 24 -10z" fill="#FFFFFF" opacity=".95"/>
+  <path d="M410 92 l7 17 17 7 -17 7 -7 17 -7 -17 -17 -7 17 -7z" fill="#FFFFFF" opacity=".9"/>
+  <circle cx="418" cy="214" r="9" fill="#FFFFFF" opacity=".85"/>
+  <!-- 콘 -->
+  <path d="M178 300 L334 300 L268 462 Q256 486 244 462 Z" fill="#E9A75B" stroke="#4A2C1D" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M200 330 L300 430 M240 312 L318 390 M282 308 L320 346 M312 330 L224 430 M272 312 L198 388 M232 310 L194 348" stroke="#C47F35" stroke-width="7" stroke-linecap="round"/>
+  <!-- 초록 · 빨강 스쿱 (국기 왼쪽 · 오른쪽) -->
+  <circle cx="186" cy="262" r="72" fill="#3DBE74" stroke="#4A2C1D" stroke-width="12"/>
+  <circle cx="326" cy="262" r="72" fill="#F0525F" stroke="#4A2C1D" stroke-width="12"/>
+  <path d="M150 230 q14 -22 38 -24" stroke="#A6EBC3" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M292 230 q14 -22 38 -24" stroke="#FFB3B9" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <!-- 흰 스쿱 (가운데, 얼굴) -->
+  <path d="M256 140 c50 0 86 36 86 84 c0 26 -10 44 -24 54 c-6 18 -18 18 -22 6 c-8 6 -22 8 -40 8 s-32 -2 -40 -8 c-4 12 -16 12 -22 -6 c-14 -10 -24 -28 -24 -54 c0 -48 36 -84 86 -84z" fill="#FFFBF5" stroke="#4A2C1D" stroke-width="12" stroke-linejoin="round"/>
+  <ellipse cx="226" cy="222" rx="10" ry="12" fill="#4A2C1D"/>
+  <ellipse cx="286" cy="222" rx="10" ry="12" fill="#4A2C1D"/>
+  <circle cx="229" cy="217" r="3.5" fill="#fff"/>
+  <circle cx="289" cy="217" r="3.5" fill="#fff"/>
+  <ellipse cx="206" cy="246" rx="15" ry="9" fill="#FF9AAE" opacity=".8"/>
+  <ellipse cx="306" cy="246" rx="15" ry="9" fill="#FF9AAE" opacity=".8"/>
+  <path d="M242 246 q14 16 28 0" stroke="#4A2C1D" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <!-- 꼭대기 체리 -->
+  <path d="M262 142 q4 -26 26 -36" stroke="#4A2C1D" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <circle cx="258" cy="136" r="17" fill="#CE2B37" stroke="#4A2C1D" stroke-width="9"/>
+</g>
+
+  <g transform="translate(372 352) rotate(-8)">
+    <rect x="-4" y="-6" width="8" height="118" rx="4" fill="#4A2C1D"/>
+    <g transform="translate(4 -4)">
+      <rect width="84" height="58" rx="10" fill="#F4F5F0" stroke="#4A2C1D" stroke-width="7"/>
+      <path d="M10 0 h18 v58 h-18 a10 10 0 0 1 -10 -10 v-38 a10 10 0 0 1 10 -10z" fill="#009246"/>
+      <path d="M56 0 h18 a10 10 0 0 1 10 10 v38 a10 10 0 0 1 -10 10 h-18z" fill="#CE2B37"/>
+      <rect width="84" height="58" rx="10" fill="none" stroke="#4A2C1D" stroke-width="7"/>
+    </g>
+  </g>
+  </g>
 </svg>

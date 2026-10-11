@@ -19,15 +19,15 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'icons/icon.svg'],
       manifest: {
-        name: '이탈리아 여행 노트',
-        short_name: '이탈리아',
+        name: 'ItalyTravel',
+        short_name: 'ItalyTravel',
         description: '오프라인에서도 보는 이탈리아 여행 지도 · 예약 · 가계부',
         lang: 'ko',
         start_url: base,
         scope: base,
         display: 'standalone',
         orientation: 'any',
-        background_color: '#ECE7DB',
+        background_color: '#FFE3C9',
         theme_color: '#ffffff',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },

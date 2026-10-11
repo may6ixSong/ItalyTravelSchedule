@@ -31,7 +31,7 @@ export default function Onboarding({ onDone }) {
           <div className="row" style={{ justifyContent: 'center', gap: 6, marginBottom: 20 }}>
             {Object.values(CITIES).map((c) => <span key={c.label} style={{ width: 12, height: 12, borderRadius: 6, background: c.color }} />)}
           </div>
-          <h1 style={{ margin: 0, textAlign: 'center', fontSize: '1.6rem' }}>이탈리아 여행 노트</h1>
+          <h1 style={{ margin: 0, textAlign: 'center', fontSize: '1.6rem' }}>ItalyTravel</h1>
           <p className="muted" style={{ textAlign: 'center', margin: '8px 0 0' }}>10.20 – 11.1 · 로마 · 나폴리 · 포지타노 · 피렌체</p>
           <div style={{ marginTop: '9vh', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
             <b>입장 코드 4자리</b>
