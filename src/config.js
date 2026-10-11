@@ -1,12 +1,12 @@
 // 앱 설정. Firebase 웹 설정값은 공개돼도 되는 값이라 여기 그대로 둡니다
 // (보안은 firestore.rules가 담당). 값이 비어 있으면 이 폰 안에만 저장하는 로컬 모드로 동작합니다.
 export const firebaseConfig = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
-  storageBucket: '',
-  messagingSenderId: '',
-  appId: '',
+  apiKey: 'AIzaSyBqF20ICKDWlVB_5TMep8wuxEofFzQ8t-g',
+  authDomain: 'italytravelschedule-32d76.firebaseapp.com',
+  projectId: 'italytravelschedule-32d76',
+  storageBucket: 'italytravelschedule-32d76.firebasestorage.app',
+  messagingSenderId: '990643783455',
+  appId: '1:990643783455:web:6f9eb8c78f4b591ca2d22a',
 };
 
 // 개발 서버의 admin 사용자는 Firebase 보안 규칙을 통과하지 못하므로, 개발 중에는 로컬 저장만 씁니다.
