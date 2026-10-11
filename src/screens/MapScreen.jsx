@@ -14,6 +14,7 @@ import { useMe } from '../lib/user.js';
 import { useNotes } from '../lib/notes.js';
 import { chooseVariant, useVariants } from '../lib/variants.js';
 import VariantEditor from '../components/VariantEditor.jsx';
+import PlaceEditor from '../components/PlaceEditor.jsx';
 import { hasFirebase, HAS_TILES } from '../config.js';
 
 const LETTERS = 'ABCDEFGHIJ';
@@ -23,12 +24,13 @@ const STAY_ROUTE = ['rm-fco', 'rm-hotel', 'na-hotel', 'po-hotel', 'fi-hotel', 't
 
 export default function MapScreen({ go, openBooking }) {
   const me = useMe();
-  const { byId } = usePlaces();
+  const { byId, places } = usePlaces();
   const notes = useNotes();
   const today = todayIso();
   // 앱을 열면: 여행 중이면 오늘 날짜, 여행 전 · 후에는 첫째 날
   const [dayId, setDayId] = useState(() => DAYS.find((d) => d.date === today)?.id || DAYS[0].id);
   const [editor, setEditor] = useState(null); // { base } | { editing }
+  const [newPlace, setNewPlace] = useState(false);
   const [filters, setFilters] = useState([]);
   const [nearby, setNearby] = useState(false);
   const [radiusKm, setRadiusKm] = useState(1);
@@ -131,12 +133,12 @@ export default function MapScreen({ go, openBooking }) {
     if (!filters.length && !nearby) return [];
     const cats = filters.length ? filters : Object.keys(CATEGORIES).filter((c) => CATEGORIES[c].filter);
     const near = (p) => (anchors.length ? Math.min(...anchors.map((a) => distanceKm(a, p))) : 0);
-    return Object.values(byId)
+    return places
       .filter((p) => cats.includes(p.cat) && !stopPlaceIds.has(p.id))
       .map((p) => ({ p, d: ref ? distanceKm(ref, p) : near(p) }))
       .filter(({ d }) => (ref ? d <= radiusKm : allCities || !anchors.length || d <= SCOPE_KM))
       .sort((a, b) => a.d - b.d);
-  }, [filters, nearby, byId, ref?.lat, ref?.lng, radiusKm, anchors, allCities]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, nearby, places, ref?.lat, ref?.lng, radiusKm, anchors, allCities]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ----- 마커 · 선 ----- */
   const markers = useMemo(() => {
@@ -297,6 +299,7 @@ export default function MapScreen({ go, openBooking }) {
         <button className="fab" style={{ color: 'var(--accent)' }} onClick={() => startGps(true)} aria-label="내 위치로"><Icon name="locate" /></button>
         <button className={`fab ${measure ? 'on' : ''}`} onClick={() => { setMeasure(measure ? null : { a: null, b: null }); setSelected(null); }} aria-label="거리 재기"><Icon name="ruler" /></button>
         <button className="fab" onClick={() => setLegend(true)} aria-label="마커 범례"><Icon name="layers" /></button>
+        <button className="fab" style={{ color: 'var(--accent)' }} onClick={() => setNewPlace(true)} aria-label="장소 직접 등록"><Icon name="plus" /></button>
       </div>
 
       <Sheet snap={snap} onSnap={setSnap}>
@@ -324,6 +327,10 @@ export default function MapScreen({ go, openBooking }) {
       </Sheet>
 
       {legend && <Legend onClose={() => setLegend(false)} />}
+      {newPlace && (
+        <PlaceEditor city={day?.city} cat={filters[0]} onClose={() => setNewPlace(false)}
+          onSaved={(p) => { setSelected(p.id); setSnap('half'); setFocus({ lat: p.lat, lng: p.lng, zoom: 15, key: Date.now() }); if (!filters.includes(p.cat) && CATEGORIES[p.cat].filter && !stopPlaceIds.has(p.id)) setFilters((f) => [...f, p.cat]); }} />
+      )}
       {editor && day && (
         <VariantEditor day={day} base={editor.base} editing={editor.editing} onClose={() => setEditor(null)}
           onSaved={(id) => { chooseVariant(day.id, id); setEditor(null); }} />
@@ -380,12 +387,13 @@ function DayList({ stops, onPick, notes, variants, variant, onVariant, onNewVari
           </button>
         ))}
         <button className="chip" style={{ borderStyle: 'dashed' }} onClick={onNewVariant}><Icon name="plus" size={14} />다른 일정</button>
-        {variant.custom && <button className="chip" onClick={onEditVariant}><Icon name="edit" size={14} />고치기</button>}
+        <button className="chip" onClick={onEditVariant}><Icon name="edit" size={14} />고치기</button>
       </div>
       <div className="row" style={{ marginBottom: 10 }}>
-        <b className="grow">{variant.id === 'main' ? '오늘 일정' : variant.label} {placed}곳</b>
+        <b className="grow">{variant.id === 'main' ? '오늘 일정' : variant.label} {placed}곳{variant.overridden && <span className="badge" style={{ marginLeft: 6 }}>직접 고침</span>}</b>
         <span className="small muted">확정 {stops.filter((s) => s.tag === 'confirmed').length} · 추천 {stops.filter((s) => s.tag !== 'confirmed').length}</span>
       </div>
+      {stops.length === 0 && <div className="empty">아직 일정이 없어요. 위의 고치기를 눌러 추가하세요.</div>}
       {stops.map((s, i) => (
         <button key={i} className="stop" onClick={() => s.place && onPick(s.place)} disabled={!s.place}>
           <span className="rail">{s.place ? <MiniMarker cat={s.place.cat} label={s.n} /> : <span className="mk mini mk-circle" style={{ '--c': '#b8af9e' }}><span className="in" /></span>}</span>
@@ -446,7 +454,7 @@ function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan, n
                 <MiniMarker cat={p.cat} />
                 <span className="grow">
                   <span style={{ display: 'block', fontWeight: 600, fontSize: '0.92rem' }}>{p.name}</span>
-                  <span className="small muted">{CATEGORIES[p.cat].label} · {formatKm(d)} · 도보 {walkMinutes(d)}분{p.note ? ` · ${p.note}` : ''}</span>
+                  <span className="small muted">{CATEGORIES[p.cat]?.label} · {formatKm(d)} · 도보 {walkMinutes(d)}분{p.note ? ` · ${p.note}` : ''}</span>
                   {notes[p.id] && <NoteLine text={notes[p.id].text} />}
                 </span>
               </button>
@@ -523,7 +531,7 @@ function Slot({ letter, label, value, active, action }) {
 }
 
 function Legend({ onClose }) {
-  const samples = { meal: 8, cafe: 2, gelato: 5, sight: 3, shop: 6, stay: null, transit: null };
+  const samples = { meal: 8, pub: 9, cafe: 2, gelato: 5, sight: 3, spot: 4, shop: 6, stay: null, transit: null };
   return (
     <Modal onClose={onClose} label="지도 마커 안내">
       <ModalHead title="지도 마커 안내" onClose={onClose} />

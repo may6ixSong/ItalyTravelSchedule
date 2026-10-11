@@ -153,6 +153,11 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .mk-house { --s: 32px; }
 .mk-house::before, .mk-house .in { clip-path: polygon(50% 0, 100% 42%, 100% 100%, 0 100%, 0 42%); }
 .mk-house .in { inset: 3px; padding-top: 7px; }
+.mk-oct::before { content: ''; position: absolute; inset: 0; background: #fff; }
+.mk-oct::before, .mk-oct .in { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+.mk-oct .in { inset: 2.5px; }
+.mk-pill { width: calc(var(--s) * 1.35); }
+.mk-pill .in { border-radius: 999px; border: 2.5px solid #fff; }
 .mk.cand { --s: 25px; font-size: 11px; }
 .mk.cand.mk-tag { width: 30px; }
 .mk.dim { opacity: 0.5; }
@@ -248,7 +253,8 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 
 /* 필터 칩 안의 작은 모양 표시 */
 .chip .legend-dot { --s: 13px; filter: none; }
-.chip .legend-dot.mk-tag { width: 16px; }
+.chip .legend-dot.mk-tag, .chip .legend-dot.mk-pill { width: 17px; }
+.chip .legend-dot.mk-oct .in { inset: 1px; }
 .chip .legend-dot.mk-hex, .chip .legend-dot.mk-house { --s: 14px; }
 .chip .legend-dot .in { border-width: 0; }
 .chip .legend-dot.mk-diamond .in { inset: 2px; }
@@ -263,3 +269,7 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .note-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #f2b705; margin-right: 6px; flex-shrink: 0; vertical-align: 1px; }
 .note-line { color: #6b5414; display: block; }
 .note-box { background: #fff8e1; border: 1px solid #f1df9e; border-radius: 12px; padding: 10px 12px; color: var(--ink); font: inherit; }
+
+/* 장소 등록: 지도에서 위치 찍기 */
+.pick-map { position: relative; height: min(55dvh, 460px); min-height: 260px; border-radius: 14px; overflow: hidden; background: var(--map); flex-shrink: 0; }
+.pick-map .map { position: absolute; inset: 0; }

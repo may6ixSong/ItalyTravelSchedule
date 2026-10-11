@@ -2,7 +2,9 @@
 // 좌표는 주소 기준 대략값입니다. `npm run fetch:places`를 Places API 키와 함께 실행하면
 // placeId로 정확한 좌표·사진·리뷰·영업시간을 받아 public/places.json에 덮어씁니다.
 //
-// cat: meal(식당·바) | cafe | gelato | sight(관광지) | shop | stay(숙소) | transit(역·항구)
+// cat: meal(식당) | pub(펍·와인바) | cafe | gelato | sight(관광지: 랜드마크·미술관) | spot(구경거리: 거리·시장·전망대)
+//      | shop | stay(숙소) | transit(역·항구)
+// 앱에서 직접 등록 · 고친 장소는 공유 DB(settings/userPlaces)에 저장돼 이 목록 위에 덮어씌워져요.
 
 const P = (id, cat, city, name, lat, lng, extra = {}) => ({ id, cat, city, name, lat, lng, ...extra });
 
@@ -141,9 +143,11 @@ export const CITIES = {
 // 지도 마커 종류. shape는 styles.css의 .mk-<shape> 클래스입니다.
 export const CATEGORIES = {
   meal: { label: '식당', color: '#D9480F', shape: 'square', filter: true },
+  pub: { label: '펍·와인바', color: '#8F2D56', shape: 'oct', filter: true },
   cafe: { label: '카페', color: '#7A4B2A', shape: 'hex', filter: true },
   gelato: { label: '젤라또', color: '#D6336C', shape: 'drop', filter: true },
   sight: { label: '관광지', color: '#0B7285', shape: 'diamond', filter: true },
+  spot: { label: '구경거리', color: '#5C940D', shape: 'pill', filter: true },
   shop: { label: '쇼핑', color: '#6741D9', shape: 'tag', filter: true },
   stay: { label: '숙소', color: '#212B33', shape: 'house', filter: false },
   transit: { label: '교통', color: '#495057', shape: 'circle', filter: false },

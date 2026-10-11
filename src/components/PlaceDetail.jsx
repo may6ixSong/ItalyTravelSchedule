@@ -8,6 +8,7 @@ import { add, remove, useCollection, useWhere } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
 import { saveNote, useNotes } from '../lib/notes.js';
 import { Avatar, Icon, MiniMarker, Modal, ModalHead, Stars } from './ui.jsx';
+import PlaceEditor from './PlaceEditor.jsx';
 
 export function useUsers() {
   const me = useMe();
@@ -19,6 +20,7 @@ export function useUsers() {
 
 export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, inPlan, onClose }) {
   const [writing, setWriting] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [showPhoto, setShowPhoto] = useState(null);
   const records = useWhere('records', 'placeId', place.id) || [];
   const users = useUsers();
@@ -37,6 +39,8 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
             {cat.label} · {CITIES[place.city]?.label}
             {stop && ` · ${stop.time || stop.day}`}
             {stop?.tag === 'confirmed' && <span className="badge ok">확정</span>}
+            {place.mine && <span className="badge">직접 등록</span>}
+            {place.hidden && <span className="badge warn">숨김</span>}
           </span>
           <span style={{ fontSize: '1.3rem', fontWeight: 700, lineHeight: 1.3 }}>{place.name}</span>
           {(place.rating || avg) && (
@@ -79,7 +83,10 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
           </Info>
         )}
         {(place.note || stop?.note) && <Info icon="note">{[stop?.note && !place.note?.includes(stop.note) ? stop.note : '', place.note].filter(Boolean).join(' · ')}</Info>}
-        <a className="small" href={placeUrl(place)} target="_blank" rel="noreferrer">구글맵에서 장소 보기 (온라인)</a>
+        <div className="row" style={{ flexWrap: 'wrap' }}>
+          <a className="small grow" href={placeUrl(place)} target="_blank" rel="noreferrer">구글맵에서 장소 보기 (온라인)</a>
+          <button className="btn small ghost" onClick={() => setEditing(true)}><Icon name="edit" size={14} />정보 고치기</button>
+        </div>
       </div>
 
       {gPhotos.length > 0 && (
@@ -121,6 +128,7 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
       </section>
 
       {writing && <RecordEditor place={place} onClose={() => setWriting(false)} />}
+      {editing && <PlaceEditor place={place} onClose={() => setEditing(false)} />}
       {showPhoto && (
         <Modal onClose={() => setShowPhoto(null)} label="사진" dark>
           <img src={showPhoto} alt="" style={{ width: '100%', borderRadius: 12 }} />

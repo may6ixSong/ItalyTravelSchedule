@@ -31,6 +31,8 @@ export function directionsUrl(dest, origin = null, mode = null) {
 }
 
 export function placeUrl(p) {
+  // 직접 등록할 때 넣은 구글맵 링크가 있으면 그걸 그대로 열어요
+  if (/^https?:\/\//.test(p.gmaps || '')) return p.gmaps;
   const u = new URLSearchParams({ api: '1', query: p.placeId ? p.name : q(p) });
   if (p.placeId) u.set('query_place_id', p.placeId);
   return `https://www.google.com/maps/search/?${u}`;

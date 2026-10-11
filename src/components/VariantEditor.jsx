@@ -1,19 +1,25 @@
-// 그날의 다른 일정 만들기 · 고치기 (우천시, 마음이 바뀔 때). 장소를 고르고 순서를 바꿔 저장하면 두 폰에 공유돼요.
+// 그날 일정 고치기 · 다른 일정 만들기 (우천시, 마음이 바뀔 때). 저장하면 두 폰에 공유돼요.
+// - 코드에 있는 일정(기본 · 우천시 등)을 고치면 settings/planOverrides에 덮어쓰기로 저장 → "원래 일정으로"로 되돌릴 수 있어요.
+// - 새로 만든 일정은 settings/customPlans에 저장돼요.
 import { useMemo, useState } from 'react';
 import { CATEGORIES, CITIES } from '../data/places.js';
 import { usePlaces } from '../lib/places.js';
-import { deleteCustomPlan, saveCustomPlan } from '../lib/variants.js';
+import { deleteCustomPlan, resetOverride, saveCustomPlan, saveOverride } from '../lib/variants.js';
 import { useMe } from '../lib/user.js';
+import PlaceEditor from './PlaceEditor.jsx';
 import { Icon, MiniMarker, Modal, ModalHead } from './ui.jsx';
 
-const toEditable = (stops) => stops.filter((s) => s.place).map((s) => ({ place: s.place, time: s.time || '', title: s.title, note: s.note || '' }));
+const toEditable = (stops) => stops.map((s) => ({ place: s.place || null, time: s.time || '', title: s.title || '', note: s.note || '', tag: s.tag === 'confirmed' ? 'confirmed' : 'suggested' }));
+const small = { minHeight: 32, fontSize: '0.8rem', padding: '0 8px' };
 
 export default function VariantEditor({ day, base, editing, onClose, onSaved }) {
   const me = useMe();
   const { byId, places } = usePlaces();
+  const override = editing && !editing.custom; // 코드 일정 고치기
   const [label, setLabel] = useState(editing?.label || (base ? `${base.label} (수정)` : '우천시'));
   const [stops, setStops] = useState(() => toEditable(editing?.stops || base?.stops || []));
   const [picking, setPicking] = useState(false);
+  const upd = (i, k, v) => setStops((x) => x.map((y, j) => (j === i ? { ...y, [k]: v } : y)));
 
   const move = (i, d) => setStops((s) => {
     const n = [...s];
@@ -22,59 +28,92 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
     [n[i], n[j]] = [n[j], n[i]];
     return n;
   });
+  const clean = () => stops.filter((s) => s.place || s.title.trim()).map((s) => ({ ...s, title: s.title.trim() || byId[s.place]?.name || '' }));
   const save = () => {
+    if (override) {
+      saveOverride(day.id, editing.id, { label: editing.id === 'main' ? '' : label.trim(), stops: clean(), by: me.uid });
+      return onSaved(editing.id);
+    }
     const id = editing?.id || `c-${day.id}-${Date.now().toString(36)}`;
-    saveCustomPlan(id, { day: day.id, label: label.trim() || '다른 일정', stops: stops.map((s) => ({ ...s, tag: 'suggested' })), by: me.uid, at: editing?.at });
+    saveCustomPlan(id, { day: day.id, label: label.trim() || '다른 일정', stops: clean(), by: me.uid, at: editing?.at });
     onSaved(id);
   };
+  const title = override ? `${editing.original?.label || editing.label} 고치기` : editing ? '일정 고치기' : '다른 일정 만들기';
 
   return (
-    <Modal onClose={onClose} label="다른 일정">
-      <ModalHead title={editing ? '일정 고치기' : '다른 일정 만들기'} sub={`${day.title} · ${CITIES[day.city].label}`} onClose={onClose} />
-      <label className="field">
-        <span>일정 이름</span>
-        <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="예: 우천시, 느긋하게, 쇼핑 위주" maxLength={16} />
-      </label>
-      <div className="chips wrap">
-        {['우천시', '느긋하게', '쇼핑 위주', '맛집 위주'].map((t) => <button key={t} className={`chip ${label === t ? 'on' : ''}`} onClick={() => setLabel(t)}>{t}</button>)}
-      </div>
+    <Modal onClose={onClose} label="일정 고치기">
+      <ModalHead title={title} sub={`${day.title} · ${CITIES[day.city].label}`} onClose={onClose} />
+      {!(override && editing.id === 'main') && (
+        <>
+          <label className="field">
+            <span>일정 이름</span>
+            <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="예: 우천시, 느긋하게, 쇼핑 위주" maxLength={16} />
+          </label>
+          {!override && (
+            <div className="chips wrap">
+              {['우천시', '느긋하게', '쇼핑 위주', '맛집 위주'].map((t) => <button key={t} className={`chip ${label === t ? 'on' : ''}`} onClick={() => setLabel(t)}>{t}</button>)}
+            </div>
+          )}
+        </>
+      )}
+      {override && <span className="tiny muted" style={{ marginTop: -6 }}>고친 내용은 두 폰에 공유되고, 언제든 원래 일정으로 되돌릴 수 있어요.</span>}
 
       <div className="field">
-        <span>장소 순서 ({stops.length}곳) · 화살표로 순서 바꾸기</span>
+        <span>일정 {stops.length}개 · 화살표로 순서 바꾸기</span>
         <div className="card list">
-          {stops.length === 0 && <div className="empty" style={{ padding: 16 }}>아래에서 장소를 추가하세요</div>}
+          {stops.length === 0 && <div className="empty" style={{ padding: 16 }}>아래에서 장소나 항목을 추가하세요</div>}
           {stops.map((s, i) => {
-            const p = byId[s.place];
-            if (!p) return null;
+            const p = s.place ? byId[s.place] : null;
             return (
-              <div key={`${s.place}-${i}`} className="item" style={{ gap: 8, padding: '8px 10px' }}>
-                <MiniMarker cat={p.cat} label={i + 1} />
-                <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.name}</span>
-                  <input className="input" style={{ minHeight: 32, fontSize: '0.8rem', padding: '0 8px' }} value={s.time} placeholder="시간 (예: 오전, 13:30)"
-                    onChange={(e) => setStops((x) => x.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`${p.name} 시간`} />
+              <div key={i} className="item" style={{ gap: 8, padding: '8px 10px', alignItems: 'flex-start' }}>
+                <span style={{ paddingTop: 6 }}>
+                  {p ? <MiniMarker cat={p.cat} label={i + 1} /> : <span className="mk mini mk-circle" style={{ '--c': '#b8af9e' }}><span className="in"><span>{i + 1}</span></span></span>}
+                </span>
+                <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                  <input className="input" style={{ ...small, fontWeight: 600, fontSize: '0.88rem' }} value={s.title} placeholder={p?.name || '할 일 (예: 자유 일정, 체크아웃)'}
+                    onChange={(e) => upd(i, 'title', e.target.value)} aria-label="일정 이름" />
+                  {p && s.title.trim() && s.title.trim() !== p.name && <span className="tiny muted">📍 {p.name}</span>}
+                  {s.place && !p && <span className="tiny" style={{ color: 'var(--danger)' }}>지워진 장소예요 · 지도에 안 보여요</span>}
+                  <div className="row" style={{ gap: 6 }}>
+                    <input className="input" style={{ ...small, width: 0, flex: 1 }} value={s.time} placeholder="시간 (오전, 13:30)" onChange={(e) => upd(i, 'time', e.target.value)} aria-label="시간" />
+                    <button className={`chip ${s.tag === 'confirmed' ? 'on' : ''}`} style={{ '--c': '#2B8A3E', minHeight: 32 }} onClick={() => upd(i, 'tag', s.tag === 'confirmed' ? 'suggested' : 'confirmed')} aria-pressed={s.tag === 'confirmed'}>
+                      {s.tag === 'confirmed' ? <><Icon name="check" size={13} />확정</> : '추천'}
+                    </button>
+                  </div>
+                  <input className="input" style={small} value={s.note} placeholder="메모 (선택)" onChange={(e) => upd(i, 'note', e.target.value)} aria-label="메모" />
                 </div>
-                <button className="icon-btn" style={{ width: 34, height: 34 }} onClick={() => move(i, -1)} disabled={i === 0} aria-label="위로"><Icon name="up" size={16} /></button>
-                <button className="icon-btn" style={{ width: 34, height: 34 }} onClick={() => move(i, 1)} disabled={i === stops.length - 1} aria-label="아래로"><Icon name="down" size={16} /></button>
-                <button className="icon-btn" style={{ width: 34, height: 34, color: 'var(--danger)' }} onClick={() => setStops((x) => x.filter((_, j) => j !== i))} aria-label="빼기"><Icon name="x" size={16} /></button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <button className="icon-btn" style={{ width: 34, height: 34 }} onClick={() => move(i, -1)} disabled={i === 0} aria-label="위로"><Icon name="up" size={16} /></button>
+                  <button className="icon-btn" style={{ width: 34, height: 34 }} onClick={() => move(i, 1)} disabled={i === stops.length - 1} aria-label="아래로"><Icon name="down" size={16} /></button>
+                  <button className="icon-btn" style={{ width: 34, height: 34, color: 'var(--danger)' }} onClick={() => setStops((x) => x.filter((_, j) => j !== i))} aria-label="빼기"><Icon name="x" size={16} /></button>
+                </div>
               </div>
             );
           })}
         </div>
-        <button className="btn" onClick={() => setPicking(true)}><Icon name="plus" size={16} />장소 추가</button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+          <button className="btn" onClick={() => setPicking(true)}><Icon name="pin" size={16} />장소 추가</button>
+          <button className="btn" onClick={() => setStops((x) => [...x, { place: null, time: '', title: '', note: '', tag: 'suggested' }])}><Icon name="plus" size={16} />장소 없는 항목</button>
+        </div>
       </div>
 
       <div className="row">
-        {editing && <button className="btn" style={{ color: 'var(--danger)' }} onClick={() => { if (confirm('이 일정을 지울까요?')) { deleteCustomPlan(editing.id); onSaved('main'); } }}><Icon name="trash" size={16} /></button>}
-        <button className="btn primary grow" onClick={save} disabled={!stops.length}>저장 · 두 폰에 공유</button>
+        {editing?.custom && <button className="btn" style={{ color: 'var(--danger)' }} onClick={() => { if (confirm('이 일정을 지울까요?')) { deleteCustomPlan(editing.id); onSaved('main'); } }} aria-label="일정 지우기"><Icon name="trash" size={16} /></button>}
+        {override && editing.overridden && (
+          <button className="btn" onClick={() => { if (confirm('직접 고친 내용을 지우고 원래 일정으로 되돌릴까요?')) { resetOverride(day.id, editing.id); onSaved(editing.id); } }}>
+            <Icon name="refresh" size={16} />원래대로
+          </button>
+        )}
+        <button className="btn primary grow" onClick={save} disabled={!clean().length}>저장 · 두 폰에 공유</button>
       </div>
       {picking && <PlacePicker city={day.city} places={places} chosen={stops.map((s) => s.place)} onClose={() => setPicking(false)}
-        onPick={(p) => setStops((x) => [...x, { place: p.id, time: '', title: p.name, note: '' }])} />}
+        onPick={(p) => setStops((x) => [...x, { place: p.id, time: '', title: p.name, note: '', tag: 'suggested' }])} />}
     </Modal>
   );
 }
 
 function PlacePicker({ city, places, chosen, onPick, onClose }) {
+  const [creating, setCreating] = useState(false);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('');
   const [allCities, setAllCities] = useState(false);
@@ -101,7 +140,7 @@ function PlacePicker({ city, places, chosen, onPick, onClose }) {
               <MiniMarker cat={p.cat} />
               <span className="grow">
                 <span style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem' }}>{p.name}</span>
-                <span className="tiny muted">{CATEGORIES[p.cat].label}{p.note ? ` · ${p.note}` : ''}</span>
+                <span className="tiny muted">{CATEGORIES[p.cat]?.label}{p.mine ? ' · 직접 등록' : ''}{p.note ? ` · ${p.note}` : ''}</span>
               </span>
               {n > 0 ? <span className="badge ok">추가됨{n > 1 ? ` ×${n}` : ''}</span> : <Icon name="plus" size={18} />}
             </button>
@@ -109,7 +148,9 @@ function PlacePicker({ city, places, chosen, onPick, onClose }) {
         })}
         {!list.length && <div className="empty">맞는 장소가 없어요</div>}
       </div>
+      <button className="btn" style={{ borderStyle: 'dashed' }} onClick={() => setCreating(true)}><Icon name="plus" size={16} />목록에 없는 장소 새로 등록</button>
       <button className="btn primary" onClick={onClose}>다 골랐어요</button>
+      {creating && <PlaceEditor city={city} cat={cat || undefined} onClose={() => setCreating(false)} onSaved={(p) => onPick({ ...p, name: p.name.trim() })} />}
     </Modal>
   );
 }
