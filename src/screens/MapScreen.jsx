@@ -9,7 +9,7 @@ import { DAYS, dayLabel, todayIso } from '../data/itinerary.js';
 import { BOOKINGS, BOOKING_TYPES } from '../data/bookings.js';
 import { usePlaces } from '../lib/places.js';
 import { directionsUrl, distanceKm, formatKm, walkMinutes } from '../lib/geo.js';
-import { getPref, setPref } from '../lib/store.js';
+import { getPref, patch, setPref, useDoc } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
 import { useNotes } from '../lib/notes.js';
 import { chooseVariant, useVariants } from '../lib/variants.js';
@@ -35,7 +35,6 @@ export default function MapScreen({ go, openBooking }) {
   const [selected, setSelected] = useState(null);
   const [snap, setSnap] = useState('peek');
   const [measure, setMeasure] = useState(null); // { a, b }
-  const [plan, setPlanState] = useState(() => getPref(`plan:${dayId}`, []));
   const [legend, setLegend] = useState(false);
   const [focus, setFocus] = useState(null);
   const [toast, setToast] = useState(null);
@@ -60,13 +59,23 @@ export default function MapScreen({ go, openBooking }) {
   }, []);
   useEffect(() => {
     setPref('day', dayId);
-    setPlanState(getPref(`plan:${dayId}`, []));
     setSelected(null);
   }, [dayId]);
-  const setPlan = (next) => {
-    setPlanState(next);
-    setPref(`plan:${dayId}`, next);
-  };
+  // 임시 동선(A·B)은 두 폰이 같이 보도록 공유 DB(settings/tempPlans)에 날짜별로 저장
+  const tempPlans = useDoc('settings', 'tempPlans');
+  const plan = useMemo(() => (tempPlans?.[dayId] || []).filter((id) => byId[id]), [tempPlans, dayId, byId]);
+  const setPlan = (next) => patch('settings', 'tempPlans', { [dayId]: next });
+  // 예전 버전에서 이 폰에만 저장했던 임시 동선 옮기기 (한 번)
+  useEffect(() => {
+    if (tempPlans === undefined) return;
+    const moved = {};
+    for (const d of DAYS) {
+      const old = getPref(`plan:${d.id}`, null);
+      if (old?.length && !tempPlans?.[d.id]?.length) moved[d.id] = old;
+      if (old) setPref(`plan:${d.id}`, null);
+    }
+    if (Object.keys(moved).length) patch('settings', 'tempPlans', moved);
+  }, [tempPlans === undefined]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ----- GPS ----- */
   const startGps = useCallback((fly) => {
