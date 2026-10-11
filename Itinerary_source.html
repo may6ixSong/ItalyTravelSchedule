@@ -1,0 +1,1202 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>이탈리아 여행 일정</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: horizontal Trello-style board — one column per day, grouped by
+   city (color-coded), cards drag-and-drop within and across days; a route strip
+   up top shows the city sequence at a glance. */
+:root{
+  --bg:#F2F4F3;
+  --surface:#FFFFFF;
+  --surface-2:#E8EBEA;
+  --fg:#1A2229;
+  --muted:#5C6A72;
+  --line:#D7DCDA;
+  --accent:#2E5C7A;
+  --accent-2:#C77F1E;
+  --confirmed:#2E7A54;
+  --confirmed-bg:#E3F1E9;
+  --suggested:#8A6D1E;
+  --suggested-bg:#F3ECD8;
+  --danger:#A8433A;
+
+  --city-rome:#2E5C7A;       --city-rome-bg:#DEE9EF;
+  --city-naples:#B4592A;     --city-naples-bg:#F3E4D8;
+  --city-positano:#A24463;   --city-positano-bg:#F2DFE6;
+  --city-florence:#9C7318;   --city-florence-bg:#EFE6CD;
+  --city-tuscany:#4F6B2E;    --city-tuscany-bg:#E4EBDA;
+
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'Work Sans',-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12181C;
+    --surface:#1C252A;
+    --surface-2:#232E34;
+    --fg:#E9EEEF;
+    --muted:#93A3AA;
+    --line:#2E3A40;
+    --accent:#7BB6DA;
+    --accent-2:#E3A24C;
+    --confirmed:#7FCB9E;
+    --confirmed-bg:#1E3327;
+    --suggested:#D8BD6F;
+    --suggested-bg:#332D18;
+    --danger:#E08B82;
+
+    --city-rome:#7BB6DA;       --city-rome-bg:#213743;
+    --city-naples:#E0A16D;     --city-naples-bg:#3A2A1D;
+    --city-positano:#E19DB4;   --city-positano-bg:#3A2530;
+    --city-florence:#E3C568;   --city-florence-bg:#372E17;
+    --city-tuscany:#A9C97F;    --city-tuscany-bg:#2A331E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12181C;
+  --surface:#1C252A;
+  --surface-2:#232E34;
+  --fg:#E9EEEF;
+  --muted:#93A3AA;
+  --line:#2E3A40;
+  --accent:#7BB6DA;
+  --accent-2:#E3A24C;
+  --confirmed:#7FCB9E;
+  --confirmed-bg:#1E3327;
+  --suggested:#D8BD6F;
+  --suggested-bg:#332D18;
+  --danger:#E08B82;
+
+  --city-rome:#7BB6DA;       --city-rome-bg:#213743;
+  --city-naples:#E0A16D;     --city-naples-bg:#3A2A1D;
+  --city-positano:#E19DB4;   --city-positano-bg:#3A2530;
+  --city-florence:#E3C568;   --city-florence-bg:#372E17;
+  --city-tuscany:#A9C97F;    --city-tuscany-bg:#2A331E;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-body);
+  padding-inline:0;
+}
+.wrap{
+  max-width:100%;
+  padding-inline:16px;
+  padding-block:20px 40px;
+}
+header.top{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:18px;
+}
+h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(22px,4vw,30px);
+  margin:0;
+  text-wrap:balance;
+  letter-spacing:-0.01em;
+}
+.sub{
+  color:var(--muted);
+  font-size:13.5px;
+  margin:0;
+}
+.toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.route{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+}
+.route .chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 10px;
+  border-radius:100px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.route .arrow{color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+button.reset{
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--muted);
+  font-family:var(--font-body);
+  font-size:12.5px;
+  font-weight:600;
+  padding:7px 12px;
+  border-radius:8px;
+  cursor:pointer;
+}
+button.reset:hover{color:var(--danger);border-color:var(--danger)}
+button.reset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.board{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  padding-bottom:8px;
+  align-items:stretch;
+}
+.day{
+  width:100%;
+  min-width:0;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  border-top:3px solid var(--city-color, var(--accent));
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.day-head{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.day-date{
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:500;
+}
+.day-title{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:16.5px;
+}
+.city-badge{
+  align-self:flex-start;
+  font-size:11px;
+  font-weight:700;
+  padding:2px 9px;
+  border-radius:100px;
+  color:var(--city-color);
+  background:var(--city-bg);
+}
+.stops{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-height:12px;
+}
+.card{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:9px 10px;
+  cursor:grab;
+  position:relative;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.card:active{cursor:grabbing}
+.card.dragging{opacity:.35}
+.card-ghost{
+  position:fixed;
+  pointer-events:none;
+  z-index:1000;
+  opacity:.96;
+  box-shadow:0 10px 28px rgba(0,0,0,.28);
+  margin:0 !important;
+}
+.card-row{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  min-width:0;
+}
+.card-time{
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  font-size:12px;
+  color:var(--muted);
+  flex:0 0 auto;
+}
+.card-title{
+  font-weight:600;
+  font-size:13.5px;
+  min-width:0;
+  overflow-wrap:break-word;
+}
+.card-place{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+  overflow-wrap:break-word;
+}
+.card-tags{
+  display:flex;
+  gap:5px;
+  margin-top:6px;
+  flex-wrap:wrap;
+}
+.tag{
+  font-size:10.5px;
+  font-weight:700;
+  padding:1.5px 7px;
+  border-radius:100px;
+}
+.tag.type{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.tag.confirmed{background:var(--confirmed-bg);color:var(--confirmed)}
+.tag.suggested{background:var(--suggested-bg);color:var(--suggested)}
+.card-actions{
+  display:flex;
+  gap:8px;
+  margin-top:7px;
+}
+.card-actions button{
+  background:none;
+  border:none;
+  padding:0;
+  font-size:11px;
+  font-family:var(--font-body);
+  font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+}
+.card-actions button:hover{color:var(--fg)}
+.card-actions button.del:hover{color:var(--danger)}
+.card-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.placeholder{
+  height:44px;
+  border:2px dashed var(--accent);
+  border-radius:10px;
+  background:var(--city-bg, transparent);
+  opacity:.6;
+}
+
+.edit-form,.add-form{
+  background:var(--surface-2);
+  border:1px solid var(--accent);
+  border-radius:10px;
+  padding:9px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.edit-form input,.edit-form select,.add-form input,.add-form select{
+  font-family:var(--font-body);
+  font-size:12.5px;
+  padding:6px 8px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:var(--surface);
+  color:var(--fg);
+  width:100%;
+}
+.field-row{display:flex;gap:6px}
+.field-row > *{flex:1;min-width:0}
+.form-actions{display:flex;gap:8px;margin-top:2px}
+.form-actions button{
+  font-family:var(--font-body);
+  font-size:12px;
+  font-weight:700;
+  padding:6px 12px;
+  border-radius:7px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--fg);
+  cursor:pointer;
+}
+.form-actions button.primary{
+  background:var(--accent);
+  color:var(--surface);
+  border-color:var(--accent);
+}
+.form-actions button.del{color:var(--danger)}
+.form-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.add-btn{
+  border:1px dashed var(--line);
+  background:none;
+  color:var(--muted);
+  font-family:var(--font-body);
+  font-size:12.5px;
+  font-weight:600;
+  padding:8px;
+  border-radius:9px;
+  cursor:pointer;
+  width:100%;
+}
+.add-btn:hover{color:var(--accent);border-color:var(--accent)}
+.add-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:2px;
+}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+
+.coffee{
+  margin-top:26px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.coffee-title{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:17px;
+}
+.coffee-hint{
+  color:var(--muted);
+  font-size:12.5px;
+  margin:0;
+}
+.coffee-city{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:2px 14px;
+}
+.coffee-city summary{
+  cursor:pointer;
+  list-style:none;
+  padding-block:11px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-weight:700;
+  font-size:14px;
+}
+.coffee-city summary::-webkit-details-marker{display:none}
+.coffee-city summary::before{
+  content:"▸";
+  color:var(--city-color);
+  font-size:12px;
+  transition:transform .15s ease;
+}
+.coffee-city[open] summary::before{transform:rotate(90deg)}
+.coffee-city summary .city-badge{margin-left:auto}
+.coffee-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-block:2px 14px;
+}
+.coffee-item{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+}
+.coffee-item:first-child{border-top:none;padding-top:0}
+.coffee-item a.place-name{
+  font-weight:700;
+  font-size:13.5px;
+  color:var(--accent);
+  text-decoration:none;
+}
+.coffee-item a.place-name:hover{text-decoration:underline}
+.coffee-item a.place-name::after{
+  content:" ↗";
+  font-size:11px;
+  color:var(--muted);
+}
+.coffee-item .place-note{font-size:12.5px;color:var(--fg)}
+.coffee-item .place-addr{font-size:11.5px;color:var(--muted)}
+.coffee-item .place-landmark{
+  font-size:11.5px;
+  color:var(--accent-2);
+  font-weight:600;
+}
+.coffee-item .place-hours{
+  font-size:11.5px;
+  color:var(--muted);
+}
+
+@media (prefers-reduced-motion: no-preference){
+  .card{transition:opacity .12s ease}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>이탈리아 여행 일정</h1>
+    <p class="sub">10/20 로마 도착 — 11/1 로마 출국 · 카드를 끌어서 순서를 바꾸거나 다른 날짜로 옮기세요</p>
+    <div class="toolbar">
+      <div class="route" id="route"></div>
+      <button class="reset" id="resetBtn" type="button">원래 일정으로 초기화</button>
+    </div>
+  </header>
+  <div class="board" id="board"></div>
+
+  <section class="coffee" id="coffeeSection">
+    <div>
+      <div class="coffee-title">근처 카페 추천</div>
+      <p class="coffee-hint">도시를 눌러 펼치고, 가게 이름을 누르면 구글 지도에서 위치를 볼 수 있어요 — 숙소에서 다음 갈 곳을 미리 골라두세요.</p>
+    </div>
+    <div id="coffeeList"></div>
+  </section>
+
+  <section class="coffee" id="restaurantSection">
+    <div>
+      <div class="coffee-title">근처 식당 추천</div>
+      <p class="coffee-hint">도시를 눌러 펼치고, 가게 이름을 누르면 구글 지도에서 위치를 볼 수 있어요 — 가까운 명소와의 거리도 함께 표시했어요.</p>
+    </div>
+    <div id="restaurantList"></div>
+  </section>
+
+  <section class="coffee" id="shoppingSection">
+    <div>
+      <div class="coffee-title">마트에서 살 것</div>
+      <p class="coffee-hint">Conad, Coop 등 이탈리아 마트에서 구매 가능</p>
+    </div>
+    <div class="coffee-list">
+      <div class="coffee-item">
+        <div class="place-name">치오바(Ciobar) 핫초코</div>
+        <div class="place-note">이탈리아 대표 인스턴트 핫초코 가루 — 진하고 걸쭉한 게 특징, 마트 코코아/커피 코너</div>
+      </div>
+      <div class="coffee-item">
+        <div class="place-name">보로탈코(Borotalco)</div>
+        <div class="place-note">이탈리아 국민 바디파우더/데오드란트 브랜드 — 마트 화장품/바디케어 코너</div>
+      </div>
+      <div class="coffee-item">
+        <div class="place-name">Rio 참치캔 파테(Pâté)</div>
+        <div class="place-note">이탈리아 인기 참치 스프레드/파테 캔 — 빵에 발라먹기 좋음, 마트 통조림 코너</div>
+      </div>
+      <div class="coffee-item">
+        <div class="place-name">Polenghi 레몬즙</div>
+        <div class="place-note">이탈리아 대표 레몬즙 브랜드, 병 모양 용기 — 마트 소스/조미료 코너</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "italy-itinerary-v1";
+
+  var CITY_META = {
+    rome:     { label:"로마",     color:"var(--city-rome)",     bg:"var(--city-rome-bg)" },
+    naples:   { label:"나폴리",   color:"var(--city-naples)",   bg:"var(--city-naples-bg)" },
+    positano: { label:"포지타노", color:"var(--city-positano)", bg:"var(--city-positano-bg)" },
+    florence: { label:"피렌체",   color:"var(--city-florence)", bg:"var(--city-florence-bg)" },
+    tuscany:  { label:"토스카나", color:"var(--city-tuscany)",  bg:"var(--city-tuscany-bg)" }
+  };
+
+  var TYPE_LABEL = {
+    travel:"이동", breakfast:"아침", meal:"식사", sight:"관광", drink:"저녁/와인", free:"자유"
+  };
+
+  var COFFEE = [
+    { city:"rome", spots:[
+      { name:"Faro - Caffè Specialty", placeId:"ChIJO2OdIAlhLxMRV3acpzJo9ls", address:"Via Piave 55", note:"요즘 로마 젊은 층 사이 최고 인기 스페셜티 카페, 원두 골라 V60로 내려줌 — 리쇼네에서 도보 20분", hours:"매일 08:00–16:00 (휴무 없음)" },
+      { name:"Antico Caffè Greco", placeId:"ChIJ2d0BD1VgLxMRNdZSWGk2gXQ", address:"Via dei Condotti 86", note:"1760년 개업, 로마 3대 카페 중 하나 — 스페인 계단 근처. 서서 마시면 저렴, 앉으면 자릿세 붙어 훨씬 비쌈", hours:"영업시간 정보 미등록 · 통상 오전 9시경 오픈, 지도에서 재확인 권장" },
+      { name:"Espresso 32", placeId:"ChIJ0bbqmBlhLxMRST6YHDU2gnU", address:"Via Principe Umberto 32", note:"리쇼네에서 도보 10분, 로컬들이 찾는 가성비 좋은 카푸치노와 크루아상", hours:"매일 07:00–15:00 (휴무 없음)" },
+      { name:"D'Angelo Caffè & Gastronomia", placeId:"ChIJASXh4KdhLxMRGUPzv-7Q9ZQ", address:"Via Venti Settembre 25", note:"직접 골라 만드는 파니니와 진한 에스프레소, 아침마다 로컬로 붐빔", hours:"월–금 06:00–15:00 · 토·일 06:00–14:00 (휴무 없음)" },
+      { name:"Bar Caffetteria Ola", placeId:"ChIJR2Q2t6FhLxMRLMai_qAXpNI", address:"Via Milazzo 26", note:"테르미니역 바로 옆, 실속 있는 아침 세트", hours:"월·토 05:40–18:00 · 화–금 05:40–18:30 · 일 06:30–12:30 (휴무 없음)" },
+      { name:"Sant'Eustachio Il Caffè", placeId:"ChIJF4C_0k9gLxMR2LL_-I4HSWU", address:"Piazza di S. Eustachio 82", note:"판테온 근처, 로마 3대 카페 중 하나 — 크리미한 에스프레소로 유명", hours:"매일 07:30–24:00 (토 07:30–01:00, 휴무 없음)" }
+    ]},
+    { city:"naples", spots:[
+      { name:"Il Vero Bar del Professore", placeId:"ChIJx10WNVIIOxMR9Do7XTLFF_g", address:"Piazza Trieste e Trento 46", note:"헤이즐넛 크림 에스프레소(카페 알라 노촐라)가 시그니처, 나폴리 중심가", hours:"매일 06:00–24:00 (토 06:00–01:30, 휴무 없음)" }
+    ]},
+    { city:"florence", spots:[
+      { name:"Caffè Gilli", placeId:"ChIJFbiwjwFUKhMRPJ-oDzQyiBU", address:"Via Roma 1r · Piazza della Repubblica", note:"1733년부터, 벨 에포크 분위기의 피렌체 대표 카페 — 코르네토 알라 크레마 추천", hours:"매일 08:00–24:00 (휴무 없음)" },
+      { name:"Ditta Artigianale", placeId:"ChIJ-zHyTgdUKhMR7A4snCBn6Bg", address:"Via dei Neri 32R", note:"직접 로스팅한 스페셜티 커피, 브런치 메뉴도 훌륭", hours:"월–금 07:30–19:00 · 토·일 08:00–20:00 (휴무 없음)" }
+    ]}
+  ];
+
+  var RESTAURANTS = [
+    { city:"rome", spots:[
+      { name:"Bonci Pizzarium", placeId:"ChIJr76feHtgLxMRSpUk8Ed4h24", address:"Via della Meloria 43", note:"로마 최고 로마식 핀사(pinsa) 전문점, 무게로 잘라 파는 스타일 — 바티칸 투어 후 점심으로 좋음", landmark:"성 베드로 광장에서 도보 약 12분 (0.97km)", hours:"매일 11:15–22:00 (휴무 없음)" },
+      { name:"Osteria dell'Angelo", placeId:"ChIJCQDME4pgLxMRYIPEmIKAyPY", address:"Via Giovanni Bettolo 24-32", note:"로컬들이 찾는 정통 로마 가정식 트라토리아, 세트 메뉴 · 예약 필수", landmark:"성 베드로 광장에서 도보 약 13분 (1.05km)", hours:"월–금 12:30–14:30, 19:30–23:00 · 토 19:30–23:00만 · 일요일 휴무" },
+      { name:"Dal Toscano", placeId:"ChIJk3WgGmFgLxMRmJmBk-iWDI8", address:"Via Germanico 58-60", note:"토스카나식 비스테카(스테이크)가 유명한 바티칸 근처 맛집", landmark:"성 베드로 광장에서 도보 약 8분 (0.61km)", hours:"화–일 12:30–15:00, 20:00–23:15 · 월요일 휴무" },
+      { name:"Il Sorpasso", placeId:"ChIJ_T6FAF5gLxMRk-_hYuk4BlE", address:"Via Properzio 31/33", note:"바티칸 근처 와인바 & 레스토랑, 타르타르와 파스타 추천", landmark:"성 베드로 광장에서 도보 약 7분 (0.53km)", hours:"월–금 09:00–01:00 · 토 09:30–01:00 · 일요일 휴무" },
+      { name:"Ristorante Luigi - Cantina & Cucina", placeId:"ChIJizQFKrdhLxMRJudf2vNMGp0", address:"Via Magenta 55", note:"파스타·피자·스테이크 모두 좋은 평, 도착 첫날 저녁으로 확정", landmark:"리쇼네 숙소에서 도보 약 6분 (0.48km)", hours:"매일 09:00–01:00 (휴무 없음)" },
+      { name:"Old Bridge Gelateria", placeId:"ChIJR8-sTmFgLxMRjTyHvM4nhtU", address:"Viale dei Bastioni di Michelangelo 5", note:"바티칸 근처 젤라또 맛집, 가성비 좋고 피스타치오 인기 — 투어 끝나고 들르기 좋음", landmark:"바티칸 박물관 입구 바로 앞 (성 베드로 광장에서 도보 약 6분)", hours:"매일 10:00–00:30 (휴무 없음)" },
+      { name:"Mr.Clood Bistrot", placeId:"ChIJrxCkSDhgLxMRaYTWc7RDS8w", address:"Via Luciano Manara 13", note:"트라스테베레 지구 인기 비스트로, 조개 파스타·해산물 요리로 유명 — 유튜버 소개 후 붐빔", landmark:"콜로세움에서 택시 약 10분 (트라스테베레 지구)", hours:"월–토 12:00–15:00, 19:00–23:30 · 일요일 휴무" },
+      { name:"LUCIANO Cucina Italiana", placeId:"ChIJfbxIbcthLxMRotguzrL5sMc", address:"Piazza del Teatro di Pompeo 18", note:"'까르보나라의 왕'으로 불리는 셰프, 까르보나라·아마트리치아나 대표 메뉴", landmark:"나보나 광장에서 도보 약 4분", hours:"매일 12:00–16:00, 19:00–23:00 (휴무 없음)" },
+      { name:"Giolitti", placeId:"ChIJe3P6nFFgLxMRB4GPokAKYTg", address:"Via degli Uffici del Vicario 40", note:"1900년부터, 로마에서 가장 유명한 젤라또 가게 — 40여 가지 맛, 피스타치오 추천", landmark:"판테온에서 도보 약 3분", hours:"매일 07:30–24:00 (휴무 없음)" },
+      { name:"Ristorante coreano Midam (미담식당)", placeId:"ChIJudVo5gZhLxMRY-JbwzwXiEI", address:"Via Filippo Turati 54-56", note:"현지 한인들도 즐겨 찾는 정통 한식당 — 한식 생각날 때", landmark:"리쇼네 숙소에서 도보 약 10분", hours:"화요일 휴무 · 수 18:15–22:15만 · 월·목–일 12:15–15:00, 18:15–22:15" },
+      { name:"NUNU Ristorante Vietnamita", placeId:"ChIJaZ3l5lNhLxMRrjCtUWae4zk", address:"Via Varese / Via Milazzo 38-42", note:"리쇼네 바로 근처 베트남 쌀국수 맛집, 깔끔한 플레이팅", landmark:"리쇼네 숙소에서 도보 약 6분", hours:"월요일 휴무 · 화–일 12:00–14:30, 19:00–23:00" },
+      { name:"Old Chengdu Ristorante Cinese Sichuanese", placeId:"ChIJIQUsdqFhLxMRe0BbZCTCwUE", address:"Via Milazzo 1", note:"쓰촨식 정통 중식당, 리쇼네 바로 근처", landmark:"리쇼네 숙소에서 도보 약 6분", hours:"매일 11:00–15:00, 18:00–23:00 (휴무 없음)" }
+    ]},
+    { city:"naples", spots:[
+      { name:"50 Kalò", placeId:"ChIJ5WdstxkJOxMRLE4Olc2p9yI", address:"Piazza Sannazaro 201/c", note:"뉴욕타임즈가 극찬한 피자, 채소 토핑 추천", landmark:"메르젤리나 해안가 바로 앞 (카프리행 페리 선착장 인근)", hours:"매일 12:00–16:30, 18:30–24:30 (금·토는 익일 01:00까지, 휴무 없음)" },
+      { name:"Trattoria da Nennella", placeId:"ChIJh9uA7VAIOxMRQzTt01pxSBM", address:"Piazza Carità 22", note:"병아리콩 파스타, 감자·프로볼라 파스타 추천 — 활기찬 나폴리 현지 분위기", landmark:"Napolart 숙소에서 도보 약 8분 (0.62km)", hours:"월–토 11:45–15:30, 18:45–23:30 · 일요일 휴무" },
+      { name:"Antica Pizza Fritta da Zia Esterina Sorbillo", placeId:"ChIJVXnMzFMIOxMRXPPLqHBFes0", address:"Piazza Trieste e Trento 53", note:"나폴리식 피자 튀김(피자 프리타) 원조, 6유로대", landmark:"Napolart 숙소에서 도보 약 7분", hours:"매일 11:00–22:00 (금 ~23:00, 토 ~24:00, 휴무 없음)" },
+      { name:"Osteria Napulion", placeId:"ChIJzbsninQJOxMR8ayi4Bp1UhY", address:"Via Giovanni Nicotera 42", note:"로컬들이 찾는 숨은 맛집, 오징어·문어 파스타 인기 — 예약 필수", landmark:"Napolart 숙소에서 도보 약 11분 (언덕길)", hours:"월요일 휴무 · 화–토 12:15–14:30, 19:00–22:30 · 일 12:15–15:30" },
+      { name:"Scaturchio", placeId:"ChIJRTENmkMIOxMRsCOgKnrM-jU", address:"Piazza San Domenico Maggiore 19", note:"1903년부터, 나폴리 대표 스폴리아텔라·파스티에라 맛집", landmark:"Napolart 숙소에서 도보 약 10분", hours:"매일 08:00–21:00 (휴무 없음)" },
+      { name:"Dora's Restaurant (Da Dora)", placeId:"ChIJOdcfkwIJOxMRMsXrfUJ2dzU", address:"Via Ferdinando Palasciano 30", note:"나폴리 최고 생선 요리 전문점으로 꼽히는 곳, 고가 — 월요일 휴무", landmark:"Napolart 숙소에서 택시 약 10분 (Posillipo 방향)", hours:"월요일 휴무 · 화–토 13:00–14:45, 19:45–23:45 · 일 13:00–15:45, 19:45–23:45" },
+      { name:"10 Diego Vitagliano Pizzeria (Santa Lucia)", placeId:"ChIJg0or8ZMJOxMRXw_aqcVPd8I", address:"Via Santa Lucia 78", note:"현대 나폴리 피자의 대표주자, 해안가 근처 분위기 좋은 매장", landmark:"카스텔 델 오보에서 도보 약 5분", hours:"매일 12:00–15:15, 19:00–24:00 (휴무 없음)" },
+      { name:"Drago d'Oro", placeId:"ChIJuVDCNEUIOxMRiY1VGyPewxU", address:"Via del Chiostro 21/23", note:"25년 전통 정통 중식당, 자매가 운영 — 나폴리에서 드물게 진짜 중국 가정식", landmark:"Scaturchio(산 도메니코 광장)에서 도보 약 5분", hours:"월요일 휴무 · 화–일 12:00–15:00, 19:00–23:00" },
+      { name:"Gran Caffè Gambrinus", placeId:"ChIJb6lhS1IIOxMRCuIVLflClFQ", address:"Via Chiaia 1", note:"1860년부터, 나폴리에서 가장 유서 깊은 카페 — 왕궁 바로 옆, 바바·스폴리아티 프란체시 유명", landmark:"왕궁(Palazzo Reale) 바로 앞", hours:"매일 08:00–24:00 (토 ~익일 01:00, 휴무 없음)" },
+      { name:"Passione di Sofì", placeId:"ChIJpUbIglEIOxMRCq0gpDLjDhk", address:"Via Toledo 206", note:"나폴리에서 가장 오래된 피자집 중 하나, 피자 프리타·포르타폴리오 유명", landmark:"톨레도 지하철역 바로 근처", hours:"매일 10:30–22:00 (토·일 ~24:00, 휴무 없음)" },
+      { name:"Pescheria Azzurra", placeId:"ChIJc9buulsIOxMRSuQ2NLLHK8A", address:"Via Portamedina 3/4-5", note:"생선시장 겸 해산물 식당, 로컬 분위기의 활어 요리", landmark:"Passione di Sofì에서 도보 약 3분", hours:"월요일 휴무 · 화–토 08:00–23:00 · 일 08:00–16:00" },
+      { name:"Loong Xii Xii", placeId:"ChIJ011mBv8JOxMRku9UBR5IhSs", address:"Via Galileo Ferraris 29/31", note:"나폴리에서 드문 한식 BBQ·샤브샤브 전문점", landmark:"Napolart 숙소에서 택시 약 10분 (중앙역 동쪽)", hours:"매일 12:00–15:00, 19:00–23:00 (휴무 없음)" },
+      { name:"Pizze Fritte da Gennaro", placeId:"ChIJJXKLAE8JOxMRAFbxFMpipww", address:"Via Giuseppe Simonelli 58", note:"현지인들도 인정하는 피자 프리타 맛집, 평점 4.9 — 야외 좌석만 있음", landmark:"Napolart 숙소에서 도보 약 6분", hours:"매일 09:00–23:00 (휴무 없음)" },
+      { name:"10 Diego Vitagliano Pizzeria (Bagnoli)", placeId:"ChIJj2aQDm8OOxMRbS2ckATgHuw", address:"Via Nuova Agnano 1", note:"현대 나폴리 피자의 대표 브랜드, 바뇰리 지점 — 시내에서 거리 있어 택시 권장", landmark:"Napolart 숙소에서 택시 약 20분 (서쪽 바뇰리 지구)", hours:"매일 12:30–15:00, 19:30–24:00 (휴무 없음)" }
+    ]},
+    { city:"positano", spots:[
+      { name:"La Sponda", placeId:"ChIJhX7BlGuXOxMRjhO_4IOBdDY", address:"Via Cristoforo Colombo 30 · Le Sirenuse 호텔 내", note:"미쉐린 스타, 촛불 300여 개로 세팅하는 걸로 유명 — 전망 좋은 자리는 미리 요청 · 아라카르트 메뉴판: sirenuse.it/media/mpijvo0k/la-sponda-dinner-eng-23-06-26.pdf · 콜키지 불가, 비투숙객 1인 미니멈 €160 · 와인/샴페인 참고가(7년 전 후기 기준, 현재는 더 높을 수 있음): 잔당 Prosecco €14~17, 로제 €20~36, Dom Pérignon €55", landmark:"Le Sirenuse 숙소 건물 내부 (이동 없음)", hours:"매일 저녁 19:30–22:00만 운영 (디너 전용, 휴무 없음)" }
+    ]},
+    { city:"florence", spots:[
+      { name:"Gangnam", placeId:"ChIJJQLFjadWKhMR3uK5bSC25TQ", address:"Via Guelfa 94/r", note:"피렌체 한식당, 역 근처라 접근성 좋음", landmark:"피렌체 산타마리아노벨라역에서 도보 약 5분", hours:"수요일 휴무 · 나머지 매일 12:00–15:00, 18:30–23:00" },
+      { name:"Pho Pho", placeId:"ChIJjVsew1pXKhMRkN0gtsNlx90", address:"Via Sant'Antonino 11R", note:"피렌체에서 가장 평 좋은 베트남 쌀국수집", landmark:"피렌체역에서 도보 약 5분", hours:"수요일 휴무 · 나머지 매일 11:00–22:30" },
+      { name:"Ristorante Cinese Peking 北京饭店", placeId:"ChIJa0nq1alWKhMRbqMukhdze9c", address:"Via del Melarancio 21r", note:"피렌체 중심가의 정통 중식당", landmark:"피렌체역에서 도보 약 4분", hours:"매일 11:00–23:30 (휴무 없음)" },
+      { name:"Osteria Vecchio Cancello", placeId:"ChIJEe99u6dWKhMRIRa6LD6q-B8", address:"Via Guelfa 138/R", note:"평점 4.8, 비스테카 알라 피오렌티나(티본스테이크)가 유명한 아늑한 트라토리아 — 장거리 이동 후 저녁으로 좋음", landmark:"피렌체역에서 도보 약 10분", hours:"매일 12:00–14:00, 19:00–22:00 (휴무 없음)" },
+      { name:"La Grotta Di Leo", placeId:"ChIJW38JNqlWKhMRAUQw21Qqj9A", address:"Via della Scala 41/43r", note:"역 바로 근처 캐주얼 피자·파스타집, T본 스테이크도 인기 — 코페르토(자릿세) 없음", landmark:"피렌체역에서 도보 약 5분", hours:"매일 11:30–23:15 (휴무 없음)" },
+      { name:"Manifattura", placeId:"ChIJBZCNNKpWKhMReHejFYcwEr8", address:"Piazza di S. Pancrazio 1", note:"100% 이탈리아산 스피릿만 쓰는 칵테일바, 평점 4.7 — 빈티지 지도 모양 메뉴판", landmark:"피렌체역에서 도보 약 10분", hours:"월 18:00–01:00 · 화–일 18:00–02:00" },
+      { name:"Antico Caffè del Moro - Art Bar", placeId:"ChIJV_rEoqtWKhMRf20GMKYGWb4", address:"Via del Moro 4/r", note:"과일 베이스 칵테일 전문, 바텐더가 취향 물어보고 즉석 제조 — 캐주얼하고 편한 분위기", landmark:"피렌체역에서 도보 약 8분", hours:"월–목·일 17:30–24:00 · 금·토 17:30–01:00" },
+      { name:"Antico Ristorante Paoli 1827", placeId:"ChIJfYUTEgFUKhMRTkbwYcXHR_M", address:"Via dei Tavolini 12/R", note:"평점 4.7, 1827년부터 · 티본스테이크(비스테카 알라 피오렌티나) 맛집, 한국어 메뉴판 있음", landmark:"두오모에서 도보 약 3분", hours:"매일 12:00–22:30 (휴무 없음)" },
+      { name:"Trattoria 13 Gobbi", placeId:"ChIJN60f96tWKhMRozpWCGYxYiU", address:"Via del Porcellana 9R", note:"현지인들이 찾는 정통 토스카나 트라토리아 — 멧돼지 라구·리가토니 인기", landmark:"피렌체역에서 도보 약 8분", hours:"매일 12:00–15:00, 19:00–23:00 (휴무 없음)" },
+      { name:"LiVio Pizzeria", placeId:"ChIJQfmVBqhWKhMR_LFKQN2c-oU", address:"Via Nazionale 77r", note:"평점 4.8, 피렌체 찐맛집 피자 — 크루도&부라타, 칼라브레제 추천", landmark:"피렌체역에서 도보 약 6분", hours:"화요일 휴무 · 월·수–토 12:00–23:00 · 일 18:00–23:00" },
+      { name:"il Mercato Centrale Firenze", placeId:"ChIJl8DqtwJUKhMRtRP0_Mh84X0", address:"Piazza del Mercato Centrale", note:"피렌체 중앙시장, 1층은 신선식품, 2층은 다양한 푸드코트 — 트러플 요리 꼭 먹어보기", landmark:"피렌체역에서 도보 약 8분", hours:"매일 09:00–23:00 (휴무 없음)" },
+      { name:"Bottega di Fattoria - Trattoria Toscana", placeId:"ChIJZZXMIgJUKhMR2vfX-UZZqmI", address:"Piazza dell'Olio 8r", note:"평점 4.8, 두오모 근처 — 트러플 파스타(오일&트러플 페투치네) 극찬 리뷰 다수", landmark:"두오모에서 도보 약 2분", hours:"매일 12:00–22:30 (휴무 없음)" },
+      { name:"Antica Gelateria Fiorentina", placeId:"ChIJRywhgQJUKhMR0PMcrrTZtd0", address:"Via Faenza 2a", note:"평점 4.7, 피스타치오·페르시안(장미수+샤프란) 맛 인기 — 핫초코도 진하고 맛있음", landmark:"피렌체역에서 도보 약 7분", hours:"일 14:00–21:30 · 나머지 매일 12:30–22:30" },
+      { name:"Trattoria Dalloste SMN", placeId:"ChIJCUaWOFpXKhMRpU5ZnsUqAgE", address:"Via Luigi Alamanni 3/5r", note:"평점 4.7, 스테이크 맛집 — 트러플 파스타·비프 타르타르도 호평, 고베규도 취급 · 시내에 다른 지점 2곳 더 있음(Borgo San Lorenzo, Via dei Cerchi)", landmark:"피렌체역 바로 앞", hours:"매일 11:00–22:00 (휴무 없음)" },
+      { name:"Il Grande Nuti Trattoria", placeId:"ChIJIUR4NwJUKhMReQywLW1mF9I", address:"Borgo S. Lorenzo 22/24", note:"평점 4.6, 즉석에서 만드는 생파스타 — 시에나식 피치·트러플 스테이크 파스타 인기", landmark:"두오모에서 도보 약 3분", hours:"매일 11:00–22:30 (휴무 없음)" },
+      { name:"AYASOFYA ISTANBUL", placeId:"ChIJkT_LMB1UKhMRx0P9BqlS7yI", address:"Via Panicale 55R", note:"평점 4.6(리뷰 868개), 케밥 맛집 — 할랄, 터키·인도·파키스탄식 메뉴 다양", landmark:"중앙시장(Mercato Centrale) 근처", hours:"매일 09:00–01:00 (휴무 없음)" },
+      { name:"Osteria Pastella", placeId:"ChIJT5SjQ6lWKhMRiK4p1JfblWA", address:"Via della Scala 17R", note:"평점 4.3(리뷰 4,121개), 치즈휠에 버무리는 트러플 파스타 맛집 — 생파스타 즉석 시연, 웰컴 와인 제공 · 예약 추천, 오픈런 웨이팅 있음", landmark:"피렌체역에서 도보 약 5분", hours:"매일 12:00–14:30, 19:00–22:30 (휴무 없음)" },
+      { name:"Trattoria Giovanni", placeId:"ChIJHWI4Q1NRKhMRe08M3pY9hR4", address:"Via Sant'Agostino 38r", note:"평점 4.7(리뷰 7,920개) — 끼아니나(Chianina) 품종 소고기로 만든 티본스테이크(비스테카 알라 피오렌티나) 맛집, 현지인 분위기", landmark:"피티 궁전 근처(아르노강 건너편)", hours:"매일 12:00–22:30 (휴무 없음)" },
+      { name:"Badiani Gelato Tosinghi", placeId:"ChIJpVUgk1pVKhMRX2L3gW5qAn4", address:"Via dei Tosinghi 12r", note:"평점 4.4, 피스타치오 젤라또 맛집 — 시그니처 부온탈렌티도 인기", landmark:"두오모에서 도보 약 2분", hours:"매일 09:00–23:30(금·토 ~00:30)" },
+      { name:"Madova", placeId:"ChIJZQXP_P9TKhMRAfeBI-VNl-4", address:"Via de' Guicciardini 1/red", note:"평점 4.8, 1919년부터 이어온 피렌체 대표 수제 가죽 장갑 전문점 — 손 사이즈 맞춰 캐시미어·실크 안감 선택 가능", landmark:"베키오 다리 바로 앞", hours:"일요일 휴무 · 나머지 매일 10:30–19:00" },
+      { name:"Martelli glove factory", placeId:"ChIJZYmCEwBUKhMRl1I_t-WoKZw", address:"Via Por Santa Maria 18", note:"평점 4.8, 수제 가죽 장갑 전문점 — Madova와 함께 피렌체 대표 글러브 숍, 색상·사이즈 다양", landmark:"베키오 다리에서 도보 약 2분", hours:"매일 10:00–19:00(수요일 ~17:00)" }
+    ]}
+  ];
+
+  function uid(){
+    return "s" + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+  }
+
+  function defaultData(){
+    return [
+      { id:"d1", date:"10/20", weekday:"화", city:"rome", title:"로마 도착",
+        stops:[
+          { id:uid(), time:"저녁", title:"리쇼네 체크인", place:"Via del Castro Pretorio 14", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"Ristorante Luigi - Cantina & Cucina", place:"Via Magenta 55 · 도착 첫날 저녁", type:"meal", tag:"confirmed" }
+        ]},
+      { id:"d2", date:"10/21", weekday:"수", city:"rome", title:"로마",
+        stops:[
+          { id:uid(), time:"새벽", title:"트레비 분수", place:"인파 없을 때 사진 찍기 — 21일 또는 22일 중 확정, 드래그로 옮겨도 됨", type:"sight", tag:"suggested" },
+          { id:uid(), time:"오전", title:"Faro - Caffè Specialty", place:"Via Piave 55 · 티라미수 + 커피", type:"breakfast", tag:"confirmed" },
+          { id:uid(), time:"오전", title:"스페인 계단", place:"Piazza di Spagna · 보트 모양 분수, 위에서 내려다보는 전망도 좋음", type:"sight", tag:"suggested" },
+          { id:uid(), time:"오전", title:"판테온", place:"Piazza della Rotonda · 09:00~19:00, 거대한 돔과 오큘러스", type:"sight", tag:"suggested" },
+          { id:uid(), time:"정오", title:"나보나 광장", place:"판테온에서 도보 5분 · 베르니니 분수와 노천카페", type:"sight", tag:"suggested" },
+          { id:uid(), time:"13:30", title:"콜로세움 입장", place:"", type:"sight", tag:"confirmed" },
+          { id:uid(), time:"오후", title:"진실의 입", place:"Piazza della Bocca della Verità 18 · 콜로세움에서 도보 약 15분, 09:30~17:50, 무료", type:"sight", tag:"suggested" },
+          { id:uid(), time:"저녁", title:"Trecca", place:"로마 내장요리 트라토리아, 와인 리스트 좋음", type:"drink", tag:"suggested" }
+        ]},
+      { id:"d3", date:"10/22", weekday:"목", city:"rome", title:"로마",
+        stops:[
+          { id:uid(), time:"", title:"에스프레소 + 코르네토", place:"", type:"breakfast", tag:"suggested" },
+          { id:uid(), time:"오전", title:"바티칸 투어 (마이리얼트립)", place:"박물관 스킵더라인+성 베드로 대성당+지하무덤 · 총 147,100원(투어 62,100원+스킵더라인 75,000원+성당 패스트트랙 7유로 현금)", type:"sight", tag:"confirmed" },
+          { id:uid(), time:"점심", title:"Bonci Pizzarium", place:"Via della Meloria 43 · 무게로 잘라 파는 로마 최고 핀사, 투어 끝나고 바로 근처", type:"meal", tag:"suggested" },
+          { id:uid(), time:"오후", title:"Old Bridge Gelateria", place:"바티칸 박물관 입구 바로 앞 · 가성비 좋은 젤라또, 피스타치오 인기", type:"free", tag:"suggested" },
+          { id:uid(), time:"오후", title:"라 리나센테", place:"Via del Tritone 61 · 목요일 10:00~21:00 영업, 트레비 분수 근처 · 바티칸에서 도보 약 30분/택시 10분", type:"free", tag:"suggested" },
+          { id:uid(), time:"저녁", title:"Il Sorpasso", place:"바티칸 근처 와인바 & 레스토랑", type:"drink", tag:"suggested" },
+          { id:uid(), time:"야간", title:"콜로세움 야경", place:"조명 켜진 야간 외관 감상, 낮보다 한산함", type:"sight", tag:"suggested" },
+          { id:uid(), time:"야간", title:"트레비 분수 야경", place:"저녁 늦게 다시 들러 조명 아래 야경 감상", type:"sight", tag:"suggested" }
+        ]},
+      { id:"d4", date:"10/23", weekday:"금", city:"naples", title:"로마 → 나폴리",
+        stops:[
+          { id:uid(), time:"12:41", title:"로마 → 나폴리 기차", place:"12:41~13:58 · 45.8유로", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"Napolart 체크인", place:"Via Medina 17", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"점심", title:"Antica Pizza Fritta da Zia Esterina Sorbillo", place:"Piazza Trieste e Trento 53 · Napolart서 도보 약 7분 · 나폴리식 피자 튀김(피자 프리타) 원조, 6유로대", type:"meal", tag:"suggested" },
+          { id:uid(), time:"저녁", title:"50 Kalò", place:"뉴욕타임즈가 극찬한 피자, 채소 토핑 추천", type:"meal", tag:"suggested" },
+          { id:uid(), time:"야간", title:"카스텔 델 오보 야경", place:"Napolart에서 도보 약 18~20분(산타루치아 해안도로) · 택시 5~7분, 입장권 필요 없이 성벽 밖·항구에서 감상", type:"sight", tag:"suggested" }
+        ]},
+      { id:"d5", date:"10/24", weekday:"토", city:"naples", title:"카프리 섬 (셀프 투어)",
+        stops:[
+          { id:uid(), time:"오전", title:"나폴리 → 카프리 페리", place:"Molo Beverello 출발 · 고속페리 약 50분, 26.5~31유로 · 시즌별 시간표 출발 전 재확인", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"Marina Grande 도착", place:"카프리 섬 메인 항구, 페리 도착지", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"아나카프리행 버스", place:"환승 없이 직행, 약 25분 · 30분 간격 운행 · 요금 2.5~3유로, 탭투고(비접촉 카드) 결제", type:"travel", tag:"suggested" },
+          { id:uid(), time:"", title:"몬테 솔라로 체어리프트", place:"아나카프리 출발, 편도 약 12~15분 · 왕복 10유로 · 09:30~17:30(계절별 변동) · 정상에서 나폴리만~파랄리오니 전망", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"블루 그로토 (그로타 아추라)", place:"공식 입장권 CoopCulture 6유로(온라인 예매 가능) + 로우보트 뱃삯 현장 결제(약 15~18유로) · 파도 높으면 폐쇄될 수 있음", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"Marina Grande → 카프리 타운 푸니콜라", place:"마리나 그란데 복귀 후 케이블카로 4분, 2.40유로", type:"travel", tag:"suggested" },
+          { id:uid(), time:"오후", title:"피아체타 (Piazza Umberto I)", place:"카프리 타운 중심 광장, 종탑과 노천카페", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"아우구스토 정원", place:"피아체타에서 도보 약 5분 · 파랄리오니 전망대, 09:00~20:00", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"비아 카메렐레", place:"피아체타에서 도보 약 3분 · 명품 부티크 쇼핑 거리", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"마리나 피콜라 (여유되면)", place:"아우구스토 정원에서 비아 크루프 경유 도보 약 10~15분 · 파랄리오니 바로 보이는 해변", type:"free", tag:"suggested" },
+          { id:uid(), time:"", title:"카프리 타운 → Marina Grande 푸니콜라 복귀", place:"", type:"travel", tag:"suggested" },
+          { id:uid(), time:"", title:"Marina Grande → 나폴리 페리 복귀", place:"", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"저녁", title:"Trattoria da Nennella", place:"병아리콩 파스타, 감자·프로볼라 파스타 추천", type:"meal", tag:"suggested" }
+        ]},
+      { id:"d6", date:"10/25", weekday:"일", city:"naples", title:"나폴리",
+        stops:[
+          { id:uid(), time:"", title:"Il Vero Bar Del Professore", place:"카페 알라 노촐라(헤이즐넛 에스프레소)", type:"breakfast", tag:"suggested" },
+          { id:uid(), time:"오전", title:"비아 톨레도 거리", place:"나폴리 대표 쇼핑·산책 거리, Napolart 숙소에서 도보 약 4분 · 스파냐 지구 골목도 함께 둘러보기 좋음", type:"sight", tag:"suggested" },
+          { id:uid(), time:"점심", title:"Pizze Fritte da Gennaro", place:"Via Giuseppe Simonelli 58 · Napolart서 도보 약 6분, 피자 프리타 맛집(평점 4.9), 야외 좌석만", type:"meal", tag:"suggested" },
+          { id:uid(), time:"", title:"자유 일정", place:"", type:"free", tag:"" },
+          { id:uid(), time:"저녁", title:"10 Diego Vitagliano Pizzeria (Bagnoli)", place:"Via Nuova Agnano 1 · Napolart서 택시 약 20분 (서쪽 바뇰리 지구, 시내와 거리 있음)", type:"meal", tag:"suggested" }
+        ]},
+      { id:"d7", date:"10/26", weekday:"월", city:"positano", title:"나폴리 → 포지타노",
+        stops:[
+          { id:uid(), time:"09:00", title:"나폴리 → 소렌토 페리", place:"09:00~09:45 · 약 45분 소요, 1인 약 3만원대(openferry 기준)", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"09:45", title:"소렌토 항구 도착", place:"Marina Piccola", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"09:50", title:"Villa Comunale 공원 전망대", place:"엘리베이터 1.5유로/1인(편도), 소렌토 절벽·바다 전망, 항구에서 바로 연결", type:"sight", tag:"suggested" },
+          { id:uid(), time:"10:05", title:"피아짜 타소 산책", place:"소렌토 중심 광장, SITA 버스 정류장 바로 옆", type:"sight", tag:"suggested" },
+          { id:uid(), time:"10:10", title:"Bar del Carmine", place:"Piazza Torquato Tasso 38 · 광장 바로 앞 카페, 커피 한 잔 하고 버스 정류장으로", type:"breakfast", tag:"suggested" },
+          { id:uid(), time:"10:30", title:"소렌토 → 포지타노 버스", place:"SITA 버스(30분 간격 운행), 약 45분 소요, 약 3~4유로 · ⚠️만석시 승차거부 가능(현장구매만, 예매불가)", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"[대안] Daytrip 프라이빗 전용차", place:"실견적 285유로(2인, 차량 1대 기준 · 약 42만원) · 소렌토→Le Sirenuse 문앞까지 door-to-door · 1시간 전 요청도 가능하나 확정 보장은 36시간 전 예약부터", type:"travel", tag:"suggested" },
+          { id:uid(), time:"", title:"[대안] 소렌토 → 포지타노 페리", place:"1인 약 2.1~2.6만원(할인가 기준), 약 35~40분 소요 · 버스보다 비싸지만 환승 없이 바로 탑승, 절벽 뷰 좋음(openferry 기준 11:00~ 편부터)", type:"travel", tag:"suggested" },
+          { id:uid(), time:"11:15", title:"포지타노 도착", place:"", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"Le Sirenuse 체크인", place:"라시레누세", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"12:00", title:"Spiaggia Grande 산책 & 수영", place:"포지타노 메인 해변, Le Sirenuse서 도보 바로 · 오전 10시 이전이 한산하고 사진 좋음 · 10월 말 수온 약 22도로 수영 가능(수영복·비치타월 준비)", type:"sight", tag:"suggested" },
+          { id:uid(), time:"12:30", title:"Chiesa di Santa Maria Assunta", place:"마욜리카 타일 돔 성당, 해변 바로 옆 · 09:30–12:30, 16:00–20:00 운영", type:"sight", tag:"suggested" },
+          { id:uid(), time:"13:00", title:"Via Cristoforo Colombo 쇼핑거리", place:"Le Sirenuse 바로 앞 거리, 세라믹·리넨·포지타노 샌들", type:"sight", tag:"suggested" },
+          { id:uid(), time:"14:00", title:"Fornillo Beach", place:"메인 해변보다 한적한 옆 해변, 도보 약 10분", type:"sight", tag:"suggested" },
+          { id:uid(), time:"저녁", title:"La Sponda", place:"Le Sirenuse 내, 미쉐린 스타", type:"drink", tag:"suggested" }
+        ]},
+      { id:"d8", date:"10/27", weekday:"화", city:"florence", title:"포지타노 → 소렌토 → 나폴리 → 피렌체",
+        stops:[
+          { id:uid(), time:"11:00", title:"Le Sirenuse 체크아웃", place:"짐은 벨데스크에 맡기고 근처서 여유시간(약 1시간)", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"12:15", title:"포지타노 → 소렌토 페리", place:"포지타노 항구(Spiaggia Grande 옆)에서 탑승 · 약 35~40분, 1인 약 2.1~2.6만원대(openferry 기준 · 정확한 27일 시간표는 출발 전 재확인) · [대안] SITA 버스(Chiesa Nuova, 약 40~50분, 약 3~4유로, 만석시 승차거부 가능)", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"13:00", title:"소렌토 도착", place:"", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"13:20", title:"소렌토 → 나폴리 페리", place:"NLG, 약 35분·1인 약 14~15유로 · Molo Beverello 나폴리 항 도착 (시간표 확인 완료) · [대안] Circumvesuviana 기차(72분, 약 5유로)", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"13:55", title:"나폴리(Molo Beverello) 도착 → 나폴리 중앙역 이동", place:"택시 약 11유로 또는 트램1/버스151, 도보로도 이동 가능 · Napoli Centrale까지 여유 있게 이동", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"15:25", title:"나폴리 → 피렌체 기차", place:"15:25~18:31 · 79.8유로", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"리사 하우스 체크인", place:"피렌체역 근처 한인민박 · [대안 후보] Relais Luce Florence — 평점 4.7, 역에서 도보 2분, 발코니 조식·전망 좋다는 후기 다수", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"저녁", title:"Osteria Vecchio Cancello", place:"티본스테이크 맛집, 역에서 도보 10분 · 하루 종일 이동한 날 저녁으로 든든하게", type:"meal", tag:"suggested" },
+          { id:uid(), time:"", title:"Manifattura", place:"이탈리아산 스피릿 칵테일바, 역에서 도보 10분 · 저녁 식사 후 한 잔", type:"drink", tag:"suggested" }
+        ]},
+      { id:"d9", date:"10/28", weekday:"수", city:"florence", title:"피렌체",
+        stops:[
+          { id:uid(), time:"", title:"Caffè Gilli", place:"코르네토 + 에스프레소, 1733년부터", type:"breakfast", tag:"suggested" },
+          { id:uid(), time:"11:00", title:"View on Art Rooftop", place:"두오모 전망 (예약 완료) · 평점 3.4, 서비스 관련 불만 리뷰 많음 — 참고", type:"drink", tag:"confirmed" },
+          { id:uid(), time:"", title:"[추가] ToscaNino in Rinascente", place:"라 리나센테 백화점 옥상, 입장 무료(음료는 주문) · 두오모+베키오 궁 전망 · 평점 3.1이지만 무료 입장이라 가볍게 들르기 좋음", type:"drink", tag:"suggested" },
+          { id:uid(), time:"오후", title:"우피치 미술관", place:"보티첼리 '비너스의 탄생' 등 르네상스 거장 작품 · 화–일 08:15–18:30, 월요일 휴무 · 사전 예약 강추", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"피아자 델라 시뇨리아", place:"팔라쪼 베키오·넵튠 분수·다비드상 복제본 — 노천 조각 갤러리, 무료", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"베키오 다리", place:"낮에 건너면서 구경 (야경은 10/29에 별도)", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"보볼리 정원", place:"피티 궁전 뒤 대형 정원, 산책하기 좋음", type:"sight", tag:"suggested" },
+          { id:uid(), time:"저녁", title:"와인바 저녁", place:"", type:"drink", tag:"suggested" }
+        ]},
+      { id:"d10", date:"10/29", weekday:"목", city:"florence", title:"피렌체 → 피사 당일치기",
+        stops:[
+          { id:uid(), time:"", title:"Ditta Artigianale", place:"자가 로스팅 원두, 크림 코르네토", type:"breakfast", tag:"suggested" },
+          { id:uid(), time:"오전", title:"피렌체 → 피사 기차", place:"Regionale, 약 1~1.5시간 · 약 9유로, 자주 운행", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"피사의 사탑 & 두오모 광장", place:"Pisa Centrale역에서 도보 약 12~15분", type:"sight", tag:"confirmed" },
+          { id:uid(), time:"오후", title:"피렌체 복귀 기차", place:"", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"일몰", title:"Piazzale Michelangelo", place:"피렌체 대표 야경 명소, 두오모·아르노강·베키오 다리 한눈에 · 무료, 일몰 전엔 매우 붐빔", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"[대안] San Miniato al Monte", place:"피아짤레 미켈란젤로 위쪽 교회, 좀 더 한적하고 차분한 전망 · 09:30–13:00, 15:30–19:00", type:"sight", tag:"suggested" },
+          { id:uid(), time:"야간", title:"Ponte Vecchio 야경 산책", place:"베키오 다리, 야간 조명 아름다움", type:"sight", tag:"suggested" },
+          { id:uid(), time:"저녁", title:"Zefiro Rooftop", place:"W 호텔 옥상바, 두오모 근접 뷰 · 역 근처(도보 4분) · 예약 권장, 평점 4.5 — 놀러가기 좋은 밤", type:"drink", tag:"suggested" }
+        ]},
+      { id:"d11", date:"10/30", weekday:"금", city:"tuscany", title:"피렌체 → 끼안티",
+        stops:[
+          { id:uid(), time:"오전", title:"렌터카 픽업", place:"피렌체 시내 또는 공항 지점", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"피렌체 → 끼안티 이동", place:"SR222(끼안티지아나 도로)로 약 40분 — 포도밭 풍경 좋은 드라이브 코스", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"Montefioralle 산책", place:"평점 4.6(리뷰 1,580개), 끼안티에서 가장 예쁜 중세 마을로 꼽힘 — 좁은 돌길, 성벽 전망 · Corte di Valle 가는 길에 바로 위치, 주차는 협소", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"Piazza Matteotti (그레베 인 끼안티)", place:"평점 4.6, 삼각형 모양의 중심 광장 — 카페·와인샵 둘러보기 좋음 · Montefioralle에서 차로 약 5분", type:"sight", tag:"suggested" },
+          { id:uid(), time:"", title:"Corte di Valle 체크인", place:"Greve in Chianti 와이너리", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"와인 테이스팅 & 쿠킹 클래스", place:"", type:"drink", tag:"suggested" }
+        ]},
+      { id:"d12", date:"10/31", weekday:"토", city:"florence", title:"끼안티 → 더몰 아울렛 → 피렌체",
+        stops:[
+          { id:uid(), time:"오전", title:"끼안티 → The Mall Firenze 이동", place:"Via Europa 8, Leccio Reggello · 렌터카로 이동", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"오후", title:"The Mall Firenze 쇼핑", place:"명품 아울렛, 평점 4.2 · 매일 10:00–19:00, 카페도 있음", type:"sight", tag:"confirmed" },
+          { id:uid(), time:"", title:"렌터카 반납", place:"피렌체역(Santa Maria Novella) 근처 지점", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"끼안티 → 피렌체 이동", place:"", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"호텔 팔라쪼 베키오 체크인", place:"", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"저녁", title:"피렌체 마지막 저녁", place:"", type:"meal", tag:"" }
+        ]},
+      { id:"d13", date:"11/1", weekday:"일", city:"rome", title:"피렌체 → 로마 → 출국",
+        stops:[
+          { id:uid(), time:"11:28", title:"피렌체 → 로마 기차", place:"11:28~13:05 · 59.8유로", type:"travel", tag:"confirmed" },
+          { id:uid(), time:"", title:"로마 출국", place:"", type:"travel", tag:"confirmed" }
+        ]}
+    ];
+  }
+
+  var state = load();
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    }catch(e){}
+    return defaultData();
+  }
+
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  function findDay(dayId){
+    for(var i=0;i<state.length;i++) if(state[i].id===dayId) return state[i];
+    return null;
+  }
+
+  var boardEl = document.getElementById("board");
+  var routeEl = document.getElementById("route");
+
+  function renderRoute(){
+    var seen = [];
+    state.forEach(function(d){
+      if(seen[seen.length-1] !== d.city) seen.push(d.city);
+    });
+    routeEl.innerHTML = "";
+    seen.forEach(function(cityKey, idx){
+      if(idx>0){
+        var arrow = document.createElement("span");
+        arrow.className = "arrow";
+        arrow.textContent = "→";
+        routeEl.appendChild(arrow);
+      }
+      var meta = CITY_META[cityKey];
+      var chip = document.createElement("span");
+      chip.className = "chip";
+      chip.style.color = meta.color;
+      chip.style.background = meta.bg;
+      var dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = meta.color;
+      chip.appendChild(dot);
+      chip.appendChild(document.createTextNode(meta.label));
+      routeEl.appendChild(chip);
+    });
+  }
+
+  function makeCardEl(day, stop){
+    var card = document.createElement("div");
+    card.className = "card";
+    card.dataset.stopId = stop.id;
+    card.dataset.dayId = day.id;
+
+    var row = document.createElement("div");
+    row.className = "card-row";
+    if(stop.time){
+      var t = document.createElement("span");
+      t.className = "card-time";
+      t.textContent = stop.time;
+      row.appendChild(t);
+    }
+    var title = document.createElement("span");
+    title.className = "card-title";
+    title.textContent = stop.title;
+    row.appendChild(title);
+    card.appendChild(row);
+
+    if(stop.place){
+      var place = document.createElement("div");
+      place.className = "card-place";
+      place.textContent = stop.place;
+      card.appendChild(place);
+    }
+
+    var tags = document.createElement("div");
+    tags.className = "card-tags";
+    var typeTag = document.createElement("span");
+    typeTag.className = "tag type";
+    typeTag.textContent = TYPE_LABEL[stop.type] || stop.type;
+    tags.appendChild(typeTag);
+    if(stop.tag === "confirmed"){
+      var ct = document.createElement("span");
+      ct.className = "tag confirmed";
+      ct.textContent = "확정";
+      tags.appendChild(ct);
+    } else if(stop.tag === "suggested"){
+      var st = document.createElement("span");
+      st.className = "tag suggested";
+      st.textContent = "추천";
+      tags.appendChild(st);
+    }
+    card.appendChild(tags);
+
+    var actions = document.createElement("div");
+    actions.className = "card-actions";
+    var editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.textContent = "수정";
+    editBtn.addEventListener("click", function(){ openEditForm(day, stop, card); });
+    var delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "del";
+    delBtn.textContent = "삭제";
+    delBtn.addEventListener("click", function(){
+      day.stops = day.stops.filter(function(s){ return s.id !== stop.id; });
+      save(); renderBoard();
+    });
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    card.appendChild(actions);
+
+    bindPointerDrag(card);
+
+    return card;
+  }
+
+  // Pointer-based drag (works on iPad/iPhone touch and desktop mouse alike;
+  // native HTML5 dragstart/dragover is unreliable on iPadOS Safari).
+  function bindPointerDrag(card){
+    card.addEventListener("pointerdown", function(e){
+      if(e.target.closest("button")) return;
+      if(e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
+      e.preventDefault();
+
+      var rect = card.getBoundingClientRect();
+      var offsetX = e.clientX - rect.left;
+      var offsetY = e.clientY - rect.top;
+
+      var ghost = card.cloneNode(true);
+      ghost.classList.add("card-ghost");
+      ghost.style.left = rect.left + "px";
+      ghost.style.top = rect.top + "px";
+      ghost.style.width = rect.width + "px";
+      document.body.appendChild(ghost);
+
+      card.classList.add("dragging");
+      try{ card.setPointerCapture(e.pointerId); }catch(err){}
+
+      function onMove(ev){
+        ghost.style.left = (ev.clientX - offsetX) + "px";
+        ghost.style.top = (ev.clientY - offsetY) + "px";
+        var el = document.elementFromPoint(ev.clientX, ev.clientY);
+        var stopsEl = el && el.closest(".stops");
+        if(stopsEl){
+          var after = getDragAfterElement(stopsEl, ev.clientY);
+          if(after == null){
+            if(stopsEl.lastElementChild !== card) stopsEl.appendChild(card);
+          } else if(after !== card){
+            stopsEl.insertBefore(card, after);
+          }
+        }
+      }
+
+      function onUp(ev){
+        card.classList.remove("dragging");
+        try{ card.releasePointerCapture(ev.pointerId); }catch(err){}
+        card.removeEventListener("pointermove", onMove);
+        card.removeEventListener("pointerup", onUp);
+        card.removeEventListener("pointercancel", onUp);
+        if(ghost.parentNode) ghost.parentNode.removeChild(ghost);
+        commitOrderFromDom();
+        save();
+      }
+
+      card.addEventListener("pointermove", onMove);
+      card.addEventListener("pointerup", onUp);
+      card.addEventListener("pointercancel", onUp);
+    });
+  }
+
+  function commitOrderFromDom(){
+    var byId = {};
+    state.forEach(function(d){ d.stops.forEach(function(s){ byId[s.id] = s; }); });
+    var cols = boardEl.querySelectorAll(".day");
+    Array.prototype.forEach.call(cols, function(col){
+      var day = findDay(col.dataset.dayId);
+      if(!day) return;
+      var ids = Array.prototype.map.call(col.querySelectorAll(".stops > .card"), function(el){ return el.dataset.stopId; });
+      day.stops = ids.map(function(id){ return byId[id]; }).filter(Boolean);
+    });
+  }
+
+  function openEditForm(day, stop, cardEl){
+    var form = document.createElement("div");
+    form.className = "edit-form";
+
+    var row1 = document.createElement("div");
+    row1.className = "field-row";
+    var timeInput = document.createElement("input");
+    timeInput.placeholder = "시간 (예: 13:30 또는 저녁)";
+    timeInput.value = stop.time || "";
+    var typeSelect = document.createElement("select");
+    Object.keys(TYPE_LABEL).forEach(function(key){
+      var opt = document.createElement("option");
+      opt.value = key; opt.textContent = TYPE_LABEL[key];
+      if(key === stop.type) opt.selected = true;
+      typeSelect.appendChild(opt);
+    });
+    row1.appendChild(timeInput);
+    row1.appendChild(typeSelect);
+
+    var titleInput = document.createElement("input");
+    titleInput.placeholder = "제목";
+    titleInput.value = stop.title || "";
+
+    var placeInput = document.createElement("input");
+    placeInput.placeholder = "장소 / 메모 (선택)";
+    placeInput.value = stop.place || "";
+
+    var tagSelect = document.createElement("select");
+    [["","태그 없음"],["confirmed","확정"],["suggested","추천"]].forEach(function(pair){
+      var opt = document.createElement("option");
+      opt.value = pair[0]; opt.textContent = pair[1];
+      if(pair[0] === stop.tag) opt.selected = true;
+      tagSelect.appendChild(opt);
+    });
+
+    var daySelect = document.createElement("select");
+    state.forEach(function(d){
+      var opt = document.createElement("option");
+      opt.value = d.id; opt.textContent = d.date + " (" + d.weekday + ") " + d.title;
+      if(d.id === day.id) opt.selected = true;
+      daySelect.appendChild(opt);
+    });
+
+    var actions = document.createElement("div");
+    actions.className = "form-actions";
+    var saveBtn = document.createElement("button");
+    saveBtn.type = "button"; saveBtn.className = "primary"; saveBtn.textContent = "저장";
+    var cancelBtn = document.createElement("button");
+    cancelBtn.type = "button"; cancelBtn.textContent = "취소";
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+
+    form.appendChild(row1);
+    form.appendChild(titleInput);
+    form.appendChild(placeInput);
+    form.appendChild(tagSelect);
+    form.appendChild(daySelect);
+    form.appendChild(actions);
+
+    cardEl.replaceWith(form);
+
+    saveBtn.addEventListener("click", function(){
+      stop.time = timeInput.value.trim();
+      stop.title = titleInput.value.trim() || stop.title;
+      stop.place = placeInput.value.trim();
+      stop.type = typeSelect.value;
+      stop.tag = tagSelect.value;
+      var targetDayId = daySelect.value;
+      if(targetDayId !== day.id){
+        day.stops = day.stops.filter(function(s){ return s.id !== stop.id; });
+        var targetDay = findDay(targetDayId);
+        if(targetDay) targetDay.stops.push(stop);
+      }
+      save(); renderBoard();
+    });
+    cancelBtn.addEventListener("click", function(){ renderBoard(); });
+  }
+
+  function openAddForm(day, containerEl, addBtnEl){
+    var form = document.createElement("div");
+    form.className = "add-form";
+
+    var row1 = document.createElement("div");
+    row1.className = "field-row";
+    var timeInput = document.createElement("input");
+    timeInput.placeholder = "시간 (예: 13:30 또는 저녁)";
+    var typeSelect = document.createElement("select");
+    Object.keys(TYPE_LABEL).forEach(function(key){
+      var opt = document.createElement("option");
+      opt.value = key; opt.textContent = TYPE_LABEL[key];
+      typeSelect.appendChild(opt);
+    });
+    row1.appendChild(timeInput);
+    row1.appendChild(typeSelect);
+
+    var titleInput = document.createElement("input");
+    titleInput.placeholder = "제목 (예: 저녁 식사, 기차 이동)";
+
+    var placeInput = document.createElement("input");
+    placeInput.placeholder = "장소 / 메모 (선택)";
+
+    var actions = document.createElement("div");
+    actions.className = "form-actions";
+    var saveBtn = document.createElement("button");
+    saveBtn.type = "button"; saveBtn.className = "primary"; saveBtn.textContent = "추가";
+    var cancelBtn = document.createElement("button");
+    cancelBtn.type = "button"; cancelBtn.textContent = "취소";
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+
+    form.appendChild(row1);
+    form.appendChild(titleInput);
+    form.appendChild(placeInput);
+    form.appendChild(actions);
+
+    addBtnEl.replaceWith(form);
+
+    saveBtn.addEventListener("click", function(){
+      var title = titleInput.value.trim();
+      if(!title) { titleInput.focus(); return; }
+      day.stops.push({
+        id: uid(),
+        time: timeInput.value.trim(),
+        title: title,
+        place: placeInput.value.trim(),
+        type: typeSelect.value,
+        tag: ""
+      });
+      save(); renderBoard();
+    });
+    cancelBtn.addEventListener("click", function(){ renderBoard(); });
+    titleInput.focus();
+  }
+
+  function getDragAfterElement(container, y){
+    var cards = Array.prototype.slice.call(container.querySelectorAll(".card:not(.dragging)"));
+    var closest = { offset: -Infinity, element: null };
+    cards.forEach(function(child){
+      var box = child.getBoundingClientRect();
+      var offset = y - box.top - box.height/2;
+      if(offset < 0 && offset > closest.offset){
+        closest = { offset: offset, element: child };
+      }
+    });
+    return closest.element;
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = "";
+    renderRoute();
+
+    state.forEach(function(day){
+      var meta = CITY_META[day.city];
+      var col = document.createElement("div");
+      col.className = "day";
+      col.style.setProperty("--city-color", meta.color);
+      col.style.setProperty("--city-bg", meta.bg);
+      col.dataset.dayId = day.id;
+
+      var head = document.createElement("div");
+      head.className = "day-head";
+      var dateEl = document.createElement("div");
+      dateEl.className = "day-date";
+      dateEl.textContent = day.date + " (" + day.weekday + ")";
+      var titleEl = document.createElement("div");
+      titleEl.className = "day-title";
+      titleEl.textContent = day.title;
+      var badge = document.createElement("span");
+      badge.className = "city-badge";
+      badge.textContent = meta.label;
+      head.appendChild(dateEl);
+      head.appendChild(titleEl);
+      head.appendChild(badge);
+      col.appendChild(head);
+
+      var stopsEl = document.createElement("div");
+      stopsEl.className = "stops";
+      day.stops.forEach(function(stop){
+        stopsEl.appendChild(makeCardEl(day, stop));
+      });
+      col.appendChild(stopsEl);
+
+      var addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "add-btn";
+      addBtn.textContent = "+ 항목 추가";
+      addBtn.addEventListener("click", function(){ openAddForm(day, stopsEl, addBtn); });
+      col.appendChild(addBtn);
+
+      boardEl.appendChild(col);
+    });
+  }
+
+  function mapsUrl(name, placeId){
+    var q = encodeURIComponent(name);
+    return "https://www.google.com/maps/search/?api=1&query=" + q + "&query_place_id=" + placeId;
+  }
+
+  function renderPlaceList(data, listElId, unitLabel){
+    var listEl = document.getElementById(listElId);
+    listEl.innerHTML = "";
+    data.forEach(function(group){
+      var meta = CITY_META[group.city];
+      var details = document.createElement("details");
+      details.className = "coffee-city";
+
+      var summary = document.createElement("summary");
+      summary.appendChild(document.createTextNode(meta.label + " · " + unitLabel + " " + group.spots.length + "곳"));
+      var badge = document.createElement("span");
+      badge.className = "city-badge";
+      badge.style.color = meta.color;
+      badge.style.background = meta.bg;
+      badge.textContent = meta.label;
+      summary.appendChild(badge);
+      details.appendChild(summary);
+
+      var list = document.createElement("div");
+      list.className = "coffee-list";
+      group.spots.forEach(function(spot){
+        var item = document.createElement("div");
+        item.className = "coffee-item";
+
+        var link = document.createElement("a");
+        link.className = "place-name";
+        link.href = mapsUrl(spot.name, spot.placeId);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = spot.name;
+        item.appendChild(link);
+
+        var note = document.createElement("div");
+        note.className = "place-note";
+        note.textContent = spot.note;
+        item.appendChild(note);
+
+        var addr = document.createElement("div");
+        addr.className = "place-addr";
+        addr.textContent = spot.address;
+        item.appendChild(addr);
+
+        if(spot.landmark){
+          var landmark = document.createElement("div");
+          landmark.className = "place-landmark";
+          landmark.textContent = "📍 " + spot.landmark;
+          item.appendChild(landmark);
+        }
+
+        if(spot.hours){
+          var hours = document.createElement("div");
+          hours.className = "place-hours";
+          hours.textContent = "🕐 " + spot.hours;
+          item.appendChild(hours);
+        }
+
+        list.appendChild(item);
+      });
+      details.appendChild(list);
+      listEl.appendChild(details);
+    });
+  }
+
+  function renderCoffee(){
+    renderPlaceList(COFFEE, "coffeeList", "카페");
+  }
+
+  function renderRestaurants(){
+    renderPlaceList(RESTAURANTS, "restaurantList", "식당");
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    state = defaultData();
+    save();
+    renderBoard();
+  });
+
+  renderBoard();
+  renderCoffee();
+  renderRestaurants();
+})();
+</script>
+
+</body></html>
