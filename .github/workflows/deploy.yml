@@ -28,7 +28,7 @@ jobs:
       # 오프라인 지도는 크고 자주 안 바뀌니 2주 단위로 캐시합니다.
       - name: Cache key
         id: week
-        run: echo "key=tiles-$(date -u +%G)-$(( 10#$(date -u +%V) / 2 ))-${{ hashFiles('scripts/regions.geojson', 'scripts/fetch-tiles.sh') }}" >> "$GITHUB_OUTPUT"
+        run: echo "key=tiles-$(date -u +%G)-$(( 10#$(date -u +%V) / 2 ))-${{ hashFiles('scripts/regions.geojson', 'scripts/route-corridors.geojson', 'scripts/fetch-tiles.sh') }}" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         id: tiles
         with:

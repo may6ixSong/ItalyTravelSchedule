@@ -7,6 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 const base = process.env.VITE_BASE || '/';
 // 배포 워크플로가 오프라인 지도 타일을 받아왔으면 PMTiles 지도를 씁니다.
 process.env.VITE_HAS_TILES = existsSync('public/tiles/detail.pmtiles') && existsSync('public/tiles/overview.pmtiles') ? '1' : '0';
+process.env.VITE_HAS_ROUTE_TILES = existsSync('public/tiles/route.pmtiles') ? '1' : '0';
 
 export default defineConfig({
   base,

@@ -1,6 +1,6 @@
 // 지도 스타일. 빌드 때 오프라인 타일(PMTiles)이 있으면 그걸 쓰고, 없으면 온라인 OSM 타일을 씁니다.
 import { layers, namedFlavor } from '@protomaps/basemaps';
-import { BASE, HAS_TILES } from '../config.js';
+import { BASE, HAS_ROUTE_TILES, HAS_TILES } from '../config.js';
 import { getPref, setPref } from './store.js';
 
 const ATTR = '© OpenStreetMap contributors';
@@ -17,6 +17,12 @@ export function buildStyle() {
       id: `ov-${l.id}`,
       ...(l.type === 'symbol' ? { maxzoom: Math.min(l.maxzoom ?? 24, 10) } : {}),
     }));
+    // 도시 사이 이동 경로: 줌 13까지 들어 있어서 기차 · 렌터카로 지나가는 마을과 도로가 보입니다.
+    const rt = HAS_ROUTE_TILES
+      ? layers('route', flavor, { lang: 'en' })
+          .filter((l) => l.type !== 'background')
+          .map((l) => ({ ...l, id: `rt-${l.id}`, minzoom: Math.max(l.minzoom ?? 0, 9) }))
+      : [];
     const dt = layers('detail', flavor, { lang: 'en' })
       .filter((l) => l.type !== 'background')
       .map((l) => ({ ...l, id: `dt-${l.id}`, minzoom: Math.max(l.minzoom ?? 0, 10) }));
@@ -27,8 +33,9 @@ export function buildStyle() {
       sources: {
         overview: { type: 'vector', url: `pmtiles://${abs}tiles/overview.pmtiles`, attribution: ATTR },
         detail: { type: 'vector', url: `pmtiles://${abs}tiles/detail.pmtiles`, attribution: ATTR },
+        ...(HAS_ROUTE_TILES ? { route: { type: 'vector', url: `pmtiles://${abs}tiles/route.pmtiles`, attribution: ATTR } } : {}),
       },
-      layers: [...ov, ...dt],
+      layers: [...ov, ...rt, ...dt],
     };
   }
   return {
@@ -54,7 +61,7 @@ export function offlineMapFiles() {
   if (!HAS_TILES) return [];
   const fonts = ['Noto Sans Regular', 'Noto Sans Medium', 'Noto Sans Italic'];
   const ranges = ['0-255', '256-511', '512-767', '7680-7935', '8192-8447'];
-  const files = ['tiles/overview.pmtiles', 'tiles/detail.pmtiles'];
+  const files = ['tiles/overview.pmtiles', 'tiles/detail.pmtiles', ...(HAS_ROUTE_TILES ? ['tiles/route.pmtiles'] : [])];
   for (const f of fonts) for (const r of ranges) files.push(`basemaps-assets/fonts/${encodeURIComponent(f)}/${r}.pbf`);
   for (const s of ['light.json', 'light.png', 'light@2x.json', 'light@2x.png']) files.push(`basemaps-assets/sprites/v4/${s}`);
   return files.map((f) => `${BASE}${f}`);

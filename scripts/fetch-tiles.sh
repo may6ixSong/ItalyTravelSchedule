@@ -2,6 +2,7 @@
 # 오프라인 지도 파일 만들기 (GitHub Actions에서 배포할 때 실행됩니다).
 #  - overview.pmtiles : 이탈리아 중부~남부 전체, 줌 9까지 (작음)
 #  - detail.pmtiles   : scripts/regions.geojson의 도시 영역만, 줌 15까지
+#  - route.pmtiles    : scripts/route-corridors.geojson의 도시 사이 이동 경로(폭 약 14km), 줌 13까지
 #  - basemaps-assets  : 지도 글자(폰트)와 아이콘
 # 원본은 Protomaps의 OpenStreetMap 일일 빌드입니다. 영역을 바꾸려면 regions.geojson만 고치면 됩니다.
 set -euo pipefail
@@ -39,4 +40,6 @@ for f in "Noto Sans Regular" "Noto Sans Medium" "Noto Sans Italic"; do
   cp -r "$WORK/assets/fonts/$f" "$OUT/basemaps-assets/fonts/"
 done
 cp -r "$WORK/assets/sprites/v4" "$OUT/basemaps-assets/sprites/"
+# 이동 경로 지도는 실패해도 나머지(도시 지도 · 글자)는 그대로 쓰도록 마지막에 받습니다.
+"$PMTILES" extract "$SRC" "$OUT/tiles/route.pmtiles" --region="$(dirname "$0")/route-corridors.geojson" --maxzoom=13 --download-threads=4 || { echo "route.pmtiles 실패" >&2; rm -f "$OUT/tiles/route.pmtiles"; }
 ls -la "$OUT/tiles"

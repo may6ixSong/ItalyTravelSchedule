@@ -20,6 +20,8 @@ export const JOIN_CODE = '1234';
 
 // 빌드할 때 오프라인 지도 타일(public/tiles)이 있었는지. vite.config.js에서 주입합니다.
 export const HAS_TILES = import.meta.env.VITE_HAS_TILES === '1';
+// 도시 사이 이동 경로 지도(route.pmtiles)가 있는지
+export const HAS_ROUTE_TILES = import.meta.env.VITE_HAS_ROUTE_TILES === '1';
 
 export const BASE = import.meta.env.BASE_URL;
 
