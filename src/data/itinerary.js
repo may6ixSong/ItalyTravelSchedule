@@ -1,6 +1,7 @@
 // 날짜별 일정 (UI 확인용 — 기존 일정표 그대로). 실제 일정을 받으면 이 파일만 바꾸면 됩니다.
 // stop.place가 있으면 지도에 번호 마커로 찍히고, 없으면 리스트에만 보입니다.
 // tag: confirmed(확정) | suggested(추천)
+// alts: 그날의 다른 일정(우천시 · 컨디션 안 좋을 때 등). 앱에서 직접 만든 일정은 공유 DB에 따로 저장돼요.
 
 const S = (time, title, place, note = '', tag = 'suggested') => ({ time, title, place, note, tag });
 const C = (time, title, place, note = '') => S(time, title, place, note, 'confirmed');
@@ -66,6 +67,13 @@ export const DAYS = [
     S('13:00', 'Via Cristoforo Colombo 쇼핑', 'po-colombo'),
     S('14:00', 'Fornillo Beach', 'po-fornillo'),
     S('저녁', 'La Sponda', 'po-sponda', '미쉐린 스타'),
+  ], alts: [
+    { id: 'rain', label: '우천시', stops: [
+      C('', 'Le Sirenuse 체크인', 'po-hotel'),
+      S('오후', 'Santa Maria Assunta', 'po-church', '성당 안 구경'),
+      S('', 'Via Cristoforo Colombo 쇼핑', 'po-colombo', '가게 안에서'),
+      S('저녁', 'La Sponda', 'po-sponda', '호텔 안 레스토랑'),
+    ] },
   ] },
   { id: 'd8', date: '2026-10-27', city: 'florence', title: '포지타노 → 나폴리 → 피렌체', stops: [
     C('11:00', 'Le Sirenuse 체크아웃', 'po-hotel'),
@@ -84,6 +92,15 @@ export const DAYS = [
     S('', '시뇨리아 광장', 'fi-signoria'),
     S('', '베키오 다리', 'fi-vecchio'),
     S('', '보볼리 정원', 'fi-boboli'),
+  ], alts: [
+    { id: 'rain', label: '우천시', stops: [
+      S('', 'Caffè Gilli', 'fi-gilli', '실내 자리'),
+      S('오전', '우피치 미술관', 'fi-uffizi', '실내 · 사전 예약'),
+      S('점심', 'Mercato Centrale', 'fi-mercato', '2층 푸드코트'),
+      S('오후', '라 리나센테 피렌체', 'fi-rinascente', '쇼핑 + 옥상 ToscaNino'),
+      S('', 'Madova (가죽 장갑)', 'fi-madova'),
+      S('저녁', 'Antico Ristorante Paoli 1827', 'fi-paoli'),
+    ] },
   ] },
   { id: 'd10', date: '2026-10-29', city: 'florence', title: '피렌체 · 피사', stops: [
     S('', 'Ditta Artigianale', 'fi-ditta', '크림 코르네토'),

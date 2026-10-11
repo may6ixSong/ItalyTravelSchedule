@@ -12,6 +12,8 @@ import { directionsUrl, distanceKm, formatKm, walkMinutes } from '../lib/geo.js'
 import { getPref, setPref } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
 import { useNotes } from '../lib/notes.js';
+import { chooseVariant, useVariants } from '../lib/variants.js';
+import VariantEditor from '../components/VariantEditor.jsx';
 import { hasFirebase, HAS_TILES } from '../config.js';
 
 const LETTERS = 'ABCDEFGHIJ';
@@ -22,7 +24,9 @@ export default function MapScreen({ go, openBooking }) {
   const { byId } = usePlaces();
   const notes = useNotes();
   const today = todayIso();
-  const [dayId, setDayId] = useState(() => DAYS.find((d) => d.date === today)?.id || getPref('day', 'all'));
+  // 앱을 열면: 여행 중이면 오늘 날짜, 여행 전 · 후에는 첫째 날
+  const [dayId, setDayId] = useState(() => DAYS.find((d) => d.date === today)?.id || DAYS[0].id);
+  const [editor, setEditor] = useState(null); // { base } | { editing }
   const [filters, setFilters] = useState([]);
   const [nearby, setNearby] = useState(false);
   const [radiusKm, setRadiusKm] = useState(1);
@@ -39,6 +43,21 @@ export default function MapScreen({ go, openBooking }) {
   const watch = useRef(null);
 
   const day = DAYS.find((d) => d.id === dayId);
+  const { list: variants, active: variant } = useVariants(day);
+
+  // 앱을 켜둔 채 날짜가 바뀌면(자정 지나 다시 열 때) 오늘 날짜로 이동
+  const lastToday = useRef(today);
+  useEffect(() => {
+    const check = () => {
+      const t = todayIso();
+      if (document.visibilityState !== 'visible' || t === lastToday.current) return;
+      lastToday.current = t;
+      const d = DAYS.find((x) => x.date === t);
+      if (d) setDayId(d.id);
+    };
+    document.addEventListener('visibilitychange', check);
+    return () => document.removeEventListener('visibilitychange', check);
+  }, []);
   useEffect(() => {
     setPref('day', dayId);
     setPlanState(getPref(`plan:${dayId}`, []));
@@ -75,7 +94,7 @@ export default function MapScreen({ go, openBooking }) {
     if (!day) return [];
     let n = 0;
     const seen = {};
-    return day.stops.map((s) => {
+    return (variant?.stops || day.stops).map((s) => {
       const place = s.place ? byId[s.place] : null;
       if (!place) return { ...s, n: null };
       if (seen[place.id]) return { ...s, n: seen[place.id], place, repeat: true };
@@ -83,7 +102,7 @@ export default function MapScreen({ go, openBooking }) {
       seen[place.id] = n;
       return { ...s, n, place };
     });
-  }, [day, byId]);
+  }, [day, variant, byId]);
   const stopPlaceIds = new Set(stops.filter((s) => s.place).map((s) => s.place.id));
   const dayCenter = useMemo(() => {
     const pts = stops.filter((s) => s.place);
@@ -143,7 +162,7 @@ export default function MapScreen({ go, openBooking }) {
   }, [dayId, stops, plan, byId, day]);
 
   const alerts = BOOKINGS.filter((b) => b.date === today && BOOKING_TYPES[b.type].alert && !dismissed.includes(b.id));
-  const fitKey = `${dayId}`;
+  const fitKey = `${dayId}:${variant?.id}`;
   const wide = window.innerWidth >= 760;
   const sheetPad = wide ? 60 : window.innerHeight * ({ peek: 0.26, half: 0.52, full: 0.6 }[snap] + 0.04);
   const padding = { top: alerts.length && !wide ? 380 : 190, bottom: sheetPad, left: 50, right: 70 };
@@ -211,7 +230,7 @@ export default function MapScreen({ go, openBooking }) {
             <div className="row">
               <div className="grow">
                 <div className="small muted">{day ? `${dayLabel(day.date).m}월 ${dayLabel(day.date).dd}일 ${dayLabel(day.date).wd}요일` : '10/20 – 11/1 · 12박 13일'}</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>{day ? `Day ${DAYS.indexOf(day) + 1} · ${day.title}` : '전체 여정'}</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>{day ? `Day ${DAYS.indexOf(day) + 1} · ${day.title}${variant && variant.id !== 'main' ? ` · ${variant.label}` : ''}` : '전체 여정'}</div>
               </div>
               <span className={`badge ${hasFirebase ? 'ok' : 'warn'}`} title={hasFirebase ? '공유 중' : '이 폰에만 저장 중'}>
                 <Icon name="cloud" size={13} />{HAS_TILES ? '오프라인 지도' : '온라인 지도'}
@@ -277,13 +296,18 @@ export default function MapScreen({ go, openBooking }) {
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
             ) : (
-              <DayList notes={notes} stops={stops} onPick={(p) => { setSelected(p.id); setSnap('half'); setFocus({ ...p, key: Date.now() }); }} />
+              <DayList notes={notes} variants={variants} variant={variant} onVariant={(id) => chooseVariant(day.id, id)}
+                onNewVariant={() => setEditor({ base: variant })} onEditVariant={() => setEditor({ editing: variant })} stops={stops} onPick={(p) => { setSelected(p.id); setSnap('half'); setFocus({ ...p, key: Date.now() }); }} />
             )}
           </>
         )}
       </Sheet>
 
       {legend && <Legend onClose={() => setLegend(false)} />}
+      {editor && day && (
+        <VariantEditor day={day} base={editor.base} editing={editor.editing} onClose={() => setEditor(null)}
+          onSaved={(id) => { chooseVariant(day.id, id); setEditor(null); }} />
+      )}
       {toast && (
         <div className="toast" role="status">
           <span className="grow">{toast.text}</span>
@@ -325,12 +349,21 @@ function NoteLine({ text }) {
   );
 }
 
-function DayList({ stops, onPick, notes }) {
+function DayList({ stops, onPick, notes, variants, variant, onVariant, onNewVariant, onEditVariant }) {
   const placed = stops.filter((s) => s.place && !s.repeat).length;
   return (
     <>
+      <div className="chips" role="tablist" aria-label="그날 일정 고르기" style={{ marginBottom: 10 }}>
+        {variants.map((v) => (
+          <button key={v.id} role="tab" aria-selected={v.id === variant.id} className={`chip ${v.id === variant.id ? 'solid' : ''}`} onClick={() => onVariant(v.id)}>
+            {v.label}
+          </button>
+        ))}
+        <button className="chip" style={{ borderStyle: 'dashed' }} onClick={onNewVariant}><Icon name="plus" size={14} />다른 일정</button>
+        {variant.custom && <button className="chip" onClick={onEditVariant}><Icon name="edit" size={14} />고치기</button>}
+      </div>
       <div className="row" style={{ marginBottom: 10 }}>
-        <b className="grow">오늘 일정 {placed}곳</b>
+        <b className="grow">{variant.id === 'main' ? '오늘 일정' : variant.label} {placed}곳</b>
         <span className="small muted">확정 {stops.filter((s) => s.tag === 'confirmed').length} · 추천 {stops.filter((s) => s.tag !== 'confirmed').length}</span>
       </div>
       {stops.map((s, i) => (

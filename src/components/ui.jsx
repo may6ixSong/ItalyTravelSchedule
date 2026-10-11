@@ -1,5 +1,5 @@
 // 아이콘 · 마커 · 아바타 · 시트 같은 공통 부품
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { CATEGORIES } from '../data/places.js';
 
 const PATHS = {
@@ -96,19 +96,39 @@ export function Stars({ value, size }) {
 }
 
 // 아래에서 올라오는 슬라이드. 배경을 누르거나 뒤로가기(안드로이드)로 닫힙니다.
+// 슬라이드 위에 슬라이드가 겹쳐도 뒤로가기는 맨 위 것만 닫도록 쌓아서 관리합니다.
+const stack = [];
+let ignorePops = 0;
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', () => {
+    if (ignorePops > 0) return void (ignorePops -= 1);
+    const top = stack.pop();
+    if (top) {
+      top.popped = true;
+      top.close();
+    }
+  });
+}
+
 export function Modal({ onClose, children, dark, label }) {
+  const close = useRef(onClose);
+  close.current = onClose;
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
-    const onPop = () => onClose();
-    history.pushState({ modal: true }, '');
+    const entry = { close: () => close.current(), popped: false };
+    stack.push(entry);
+    history.pushState({ modal: stack.length }, '');
+    const onKey = (e) => e.key === 'Escape' && stack[stack.length - 1] === entry && close.current();
     window.addEventListener('keydown', onKey);
-    window.addEventListener('popstate', onPop);
     return () => {
       window.removeEventListener('keydown', onKey);
-      window.removeEventListener('popstate', onPop);
-      if (history.state?.modal) history.back();
+      if (!entry.popped) {
+        const i = stack.indexOf(entry);
+        if (i >= 0) stack.splice(i, 1);
+        ignorePops += 1;
+        history.back();
+      }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div className="modal-back" onClick={onClose}>
       <div className={`modal${dark ? ' dark' : ''}`} role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}>
