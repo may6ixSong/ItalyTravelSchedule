@@ -40,6 +40,7 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
             {stop && ` · ${stop.time || stop.day}`}
             {stop?.tag === 'confirmed' && <span className="badge ok">확정</span>}
             {place.mine && <span className="badge">직접 등록</span>}
+            {place.landmark && <span className="badge">지도 기준점</span>}
             {place.hidden && <span className="badge warn">숨김</span>}
           </span>
           <span style={{ fontSize: '1.3rem', fontWeight: 700, lineHeight: 1.3 }}>{place.name}</span>
@@ -85,7 +86,7 @@ export default function PlaceDetail({ place, stop, gps, onMeasureFrom, onPlan, i
         {(place.note || stop?.note) && <Info icon="note">{[stop?.note && !place.note?.includes(stop.note) ? stop.note : '', place.note].filter(Boolean).join(' · ')}</Info>}
         <div className="row" style={{ flexWrap: 'wrap' }}>
           <a className="small grow" href={placeUrl(place)} target="_blank" rel="noreferrer">구글맵에서 장소 보기 (온라인)</a>
-          <button className="btn small ghost" onClick={() => setEditing(true)}><Icon name="edit" size={14} />정보 고치기</button>
+          {!place.landmark && <button className="btn small ghost" onClick={() => setEditing(true)}><Icon name="edit" size={14} />정보 고치기</button>}
         </div>
       </div>
 

@@ -1,5 +1,7 @@
 // 지도 위 하단 시트. 손잡이를 끌어 낮게 / 중간 / 높게 세 단계로 멈춥니다. 높이는 화면 비율로 정해서 폰마다 맞습니다.
+// 손잡이를 정확히 잡기 어려워서: 오른쪽 '목록 크게' 버튼, 목록 안에서 위로 쓸면 커지고 맨 위에서 아래로 쓸면 작아져요.
 import { useRef, useState } from 'react';
+import { Icon } from './ui.jsx';
 
 const SNAPS = { peek: 0.26, half: 0.52, full: 0.9 };
 
@@ -35,14 +37,36 @@ export default function Sheet({ snap, onSnap, children, header }) {
     setH(null);
   };
 
+  // 목록 안에서 쓸어 올리기 / 내리기
+  const swipe = useRef(null);
+  const tStart = (e) => {
+    swipe.current = { y: e.touches[0].clientY, top: e.currentTarget.scrollTop, done: false };
+  };
+  const tMove = (e) => {
+    const sw = swipe.current;
+    if (!sw || sw.done) return;
+    const dy = e.touches[0].clientY - sw.y;
+    if (dy < -36 && snap !== 'full') {
+      sw.done = true;
+      onSnap('full');
+    } else if (dy > 48 && sw.top <= 0 && e.currentTarget.scrollTop <= 0 && snap !== 'peek') {
+      sw.done = true;
+      onSnap(snap === 'full' ? 'half' : 'peek');
+    }
+  };
+
   const height = h != null ? `${h}px` : `${SNAPS[snap] * 100}%`;
   return (
     <section ref={ref} className={`sheet${h != null ? ' dragging' : ''}`} style={{ height }}>
       <div className="sheet-grip" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
         <div className="grab" />
+        <button className="sheet-toggle" onPointerDown={(e) => e.stopPropagation()} onClick={() => onSnap(snap === 'full' ? 'peek' : 'full')}
+          aria-label={snap === 'full' ? '지도 크게 보기' : '목록 크게 보기'}>
+          <Icon name={snap === 'full' ? 'down' : 'up'} size={14} />{snap === 'full' ? '지도 보기' : '목록 크게'}
+        </button>
         {header}
       </div>
-      <div className="sheet-body">{children}</div>
+      <div className="sheet-body" onTouchStart={tStart} onTouchMove={tMove}>{children}</div>
     </section>
   );
 }

@@ -60,14 +60,15 @@ function circle(center, km, n = 72) {
 const line = (coords) => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: coords } });
 const EMPTY = { type: 'FeatureCollection', features: [] };
 
-export default function MapView({ markers, routes = [], me, radius, measure, onMarker, onMapClick, fitKey, padding, onMove, focus }) {
+export default function MapView({ markers, routes = [], me, radius, measure, onMarker, onMapClick, fitKey, padding, onMove, focus, landmarks, onLandmark }) {
   const box = useRef(null);
   const map = useRef(null);
   const live = useRef([]);
   const meMarker = useRef(null);
   const ready = useRef(false);
   const handlers = useRef({});
-  handlers.current = { onMarker, onMapClick, onMove };
+  const lmLive = useRef([]);
+  handlers.current = { onMarker, onMapClick, onMove, onLandmark };
 
   useEffect(() => {
     if (!protocolAdded) {
@@ -102,6 +103,15 @@ export default function MapView({ markers, routes = [], me, radius, measure, onM
       m.fire('itp-ready');
     });
     m.on('click', (e) => handlers.current.onMapClick?.({ lat: e.lngLat.lat, lng: e.lngLat.lng }));
+    // 확대 단계에 따라 기준점(역 · 공항 · 관광지) 보이기: 넓게 볼 땐 공항 · 큰 역만
+    const zoomClass = () => {
+      const z = m.getZoom();
+      const el = m.getContainer();
+      el.classList.toggle('z-mid', z >= 11);
+      el.classList.toggle('z-hi', z >= 13.5);
+    };
+    m.on('zoom', zoomClass);
+    zoomClass();
     m.on('moveend', () => {
       const c = m.getCenter();
       handlers.current.onMove?.({ lat: c.lat, lng: c.lng });
@@ -126,6 +136,25 @@ export default function MapView({ markers, routes = [], me, radius, measure, onM
         .addTo(m),
     );
   }, [markers]);
+
+  // 기준점: 작은 회색 점 + 이름 (일정 · 후보 마커보다 아래)
+  useEffect(() => {
+    const m = map.current;
+    lmLive.current.forEach((mk) => mk.remove());
+    lmLive.current = (landmarks || []).map((l) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = `lm lm-${l.kind}`;
+      el.setAttribute('aria-label', l.name);
+      el.innerHTML = '<span class="lm-dot"></span><span class="lm-name"></span>';
+      el.querySelector('.lm-name').textContent = l.name;
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlers.current.onLandmark?.(l);
+      });
+      return new maplibregl.Marker({ element: el, anchor: 'left', offset: [-5, 0] }).setLngLat([l.lng, l.lat]).addTo(m);
+    });
+  }, [landmarks]);
 
   // 선과 원
   useEffect(() => {

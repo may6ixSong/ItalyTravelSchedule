@@ -87,7 +87,7 @@ export default function MeScreen({ setMe }) {
             <span className="small muted" style={{ lineHeight: 1.5 }}>이 빌드에는 오프라인 지도 파일이 없어요. GitHub에 배포된 앱에서는 받을 수 있어요. 지금은 온라인 지도(OSM)를 쓰고, 본 곳만 임시 저장돼요.</span>
           ) : (
             <>
-              <span className="small muted" style={{ lineHeight: 1.5 }}>로마 · 나폴리 · 카프리 · 포지타노 · 피렌체 · 피사 · 끼안띠 지도와 도시 사이 이동 경로를 폰에 저장해요. 출국 전에 와이파이에서 한 번 받아두세요.</span>
+              <span className="small muted" style={{ lineHeight: 1.5 }}>로마 · 나폴리 · 카프리 · 포지타노 · 피렌체 · 피사 · 끼안띠 지도와 도시 사이 이동 경로를 폰에 저장해요. 안드로이드는 와이파이에 연결되면 알아서 받아요. 받아 두면 지도를 볼 때 데이터를 거의 안 써요.</span>
               {status?.saved && <span className="badge ok" style={{ alignSelf: 'flex-start' }}><Icon name="check" size={12} />저장됨{status.at ? ` · ${new Date(status.at).toLocaleDateString('ko-KR')}` : ''}</span>}
               {prog ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

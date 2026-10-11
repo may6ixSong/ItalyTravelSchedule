@@ -10,6 +10,7 @@ import { MeContext, linkToFirebase, loadMe } from './lib/user.js';
 import { BOOKINGS, BOOKING_TYPES } from './data/bookings.js';
 import { todayIso } from './data/itinerary.js';
 import { hasFirebase } from './config.js';
+import { autoDownloadOnWifi } from './lib/mapStyle.js';
 
 const TABS = [
   ['map', '지도', 'map'],
@@ -34,6 +35,18 @@ export default function App() {
     const on = () => setRoute(readHash());
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
+  }, []);
+  // 데이터 아끼기: 와이파이일 때 오프라인 지도를 알아서 받아 두기 (앱을 켤 때 · 와이파이가 다시 연결될 때)
+  useEffect(() => {
+    const run = () => autoDownloadOnWifi();
+    const t = setTimeout(run, 4000);
+    window.addEventListener('online', run);
+    navigator.connection?.addEventListener?.('change', run);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('online', run);
+      navigator.connection?.removeEventListener?.('change', run);
+    };
   }, []);
   // Firebase 익명 로그인 유지 (오프라인이면 저장된 로그인 사용)
   useEffect(() => {

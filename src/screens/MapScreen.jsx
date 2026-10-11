@@ -4,7 +4,10 @@ import MapView from '../components/MapView.jsx';
 import Sheet from '../components/Sheet.jsx';
 import PlaceDetail from '../components/PlaceDetail.jsx';
 import { Avatar, Icon, MiniMarker, Modal, ModalHead } from '../components/ui.jsx';
-import { CATEGORIES, CITIES } from '../data/places.js';
+import { CATEGORIES, CITIES, PLACES } from '../data/places.js';
+import { LANDMARKS, LANDMARK_BY_ID } from '../data/landmarks.js';
+import { useOnline, connectionType } from '../lib/online.js';
+import { offlineMapStatus } from '../lib/mapStyle.js';
 import { DAYS, dayLabel, todayIso } from '../data/itinerary.js';
 import { BOOKINGS, BOOKING_TYPES } from '../data/bookings.js';
 import { usePlaces } from '../lib/places.js';
@@ -21,6 +24,11 @@ const LETTERS = 'ABCDEFGHIJ';
 const OTHER = 'otherDays'; // 필터: 다른 날 일정에 있는 장소
 // 후보는 내 위치(GPS) 또는 그날 일정 장소에서 이 거리 안만 보여줘요. 로마에 있을 때 피렌체 식당이 안 나오게.
 const SCOPE_KM = 30;
+// 여행 도시 근처(장소에서 60km 안)인지. 한국 등 다른 곳이면 내 위치로 지도를 옮기지 않아요.
+const inTripArea = (pt) => PLACES.some((p) => distanceKm(pt, p) < 60);
+let warnedAway = false; // 앱을 켜고 한 번만 알려요
+const AWAY_MSG = '지금 위치는 여행 도시가 아니에요.\n지도는 내 위치로 옮기지 않고 일정 기준으로 보여드려요.';
+
 const STAY_ROUTE = ['rm-fco', 'rm-hotel', 'na-hotel', 'po-hotel', 'fi-hotel', 'tu-hotel', 'fi-hotel2', 'rm-fco'];
 
 export default function MapScreen({ go, openBooking }) {
@@ -43,6 +51,8 @@ export default function MapScreen({ go, openBooking }) {
   const [legend, setLegend] = useState(false);
   const [focus, setFocus] = useState(null);
   const [toast, setToast] = useState(null);
+  const [gpsHelp, setGpsHelp] = useState(false);
+  const online = useOnline();
   const [dismissed, setDismissed] = useState(() => getPref(`dismiss:${today}`, []));
   const watch = useRef(null);
 
@@ -86,25 +96,75 @@ export default function MapScreen({ go, openBooking }) {
   }, [tempPlans === undefined]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ----- GPS ----- */
-  const startGps = useCallback((fly) => {
+  // 여행 도시 밖(예: 한국)에서 받은 위치는 지도 · 후보 기준으로 쓰지 않아요
+  const tripGps = gps && inTripArea(gps) ? gps : null;
+  useEffect(() => {
+    if (gps && !tripGps && !warnedAway) {
+      warnedAway = true;
+      alert(AWAY_MSG);
+    }
+  }, [gps, tripGps]);
+  const startGps = useCallback(async (fly) => {
     if (!navigator.geolocation) return setToast({ text: '이 기기는 위치를 지원하지 않아요' });
+    let state = null;
+    try {
+      state = (await navigator.permissions?.query({ name: 'geolocation' }))?.state;
+    } catch {
+      /* 권한 상태를 못 읽는 브라우저(아이폰 일부)는 바로 요청 */
+    }
+    // 한 번 거절하면 브라우저가 다시 묻지 않아서, 설정에서 켜는 방법을 보여줘요
+    if (state === 'denied') return setGpsHelp(true);
     if (watch.current == null) {
       watch.current = navigator.geolocation.watchPosition(
         (p) => setGps({ lat: p.coords.latitude, lng: p.coords.longitude }),
-        () => setToast({ text: '위치 권한을 허용해 주세요 (설정 > 브라우저 > 위치)' }),
-        { enableHighAccuracy: true, maximumAge: 15000 },
+        (e) => {
+          // 실패하면 감시를 끊어서, 다음에 누를 때 다시 권한을 물어볼 수 있게
+          if (watch.current != null) navigator.geolocation.clearWatch(watch.current);
+          watch.current = null;
+          if (e.code === 1) setGpsHelp(true);
+          else setToast({ text: '위치를 찾지 못했어요. 폰의 위치(GPS)가 켜져 있는지 확인하고 다시 눌러 주세요' });
+        },
+        { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 },
       );
     }
-    if (fly && gps) setFocus({ ...gps, zoom: 15, key: Date.now() });
+    if (fly && gps) {
+      if (!inTripArea(gps)) alert(AWAY_MSG);
+      else setFocus({ ...gps, zoom: 15, key: Date.now() });
+    }
   }, [gps]);
   useEffect(() => () => watch.current != null && navigator.geolocation.clearWatch(watch.current), []);
+  // 설정에서 위치를 허용하고 돌아오면 바로 위치 찾기
+  useEffect(() => {
+    let status = null;
+    navigator.permissions?.query({ name: 'geolocation' }).then((st) => {
+      status = st;
+      st.onchange = () => {
+        if (st.state === 'granted') {
+          setGpsHelp(false);
+          startGps(false);
+        }
+      };
+    }).catch(() => {});
+    return () => { if (status) status.onchange = null; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const flewToGps = useRef(false);
   useEffect(() => {
-    if (gps && !flewToGps.current && (nearby || watch.current != null)) {
+    if (tripGps && !flewToGps.current && (nearby || watch.current != null)) {
       flewToGps.current = true;
-      setFocus({ ...gps, zoom: 15, key: Date.now() });
+      setFocus({ ...tripGps, zoom: 15, key: Date.now() });
     }
-  }, [gps, nearby]);
+  }, [tripGps, nearby]);
+
+  // 데이터 아끼기: 오프라인 지도를 아직 안 받았는데 모바일 데이터로 보고 있으면 한 번 알려줘요
+  useEffect(() => {
+    if (!HAS_TILES || connectionType() !== 'cellular' || getPref('cellTip', false)) return;
+    offlineMapStatus().then((st) => {
+      if (st.available && !st.saved) {
+        setPref('cellTip', true);
+        setToast({ text: '와이파이에서 나 탭 → 오프라인 지도 받기를 해두면 데이터를 거의 안 써요' });
+      }
+    });
+  }, []);
 
   /* ----- 그날 일정 ----- */
   const stops = useMemo(() => {
@@ -128,11 +188,11 @@ export default function MapScreen({ go, openBooking }) {
   }, [stops]);
 
   /* ----- 후보 ----- */
-  const ref = nearby ? gps || center : null;
+  const ref = nearby ? tripGps || center : null;
   const [allCities, setAllCities] = useState(false);
   // 기준점: '내 주변'이면 반경, 아니면 GPS 위치 → 없으면 그날 일정 장소들(하루에 두 도시면 둘 다)
-  const anchors = useMemo(() => (gps ? [gps] : stops.filter((s) => s.place).map((s) => s.place)), [gps?.lat, gps?.lng, stops]); // eslint-disable-line react-hooks/exhaustive-deps
-  const scopeLabel = nearby ? null : allCities || !anchors.length ? '전체 도시' : gps ? `내 위치에서 ${SCOPE_KM}km` : `${CITIES[day.city].label} 일정 근처 ${SCOPE_KM}km`;
+  const anchors = useMemo(() => (tripGps ? [tripGps] : stops.filter((s) => s.place).map((s) => s.place)), [tripGps?.lat, tripGps?.lng, stops]); // eslint-disable-line react-hooks/exhaustive-deps
+  const scopeLabel = nearby ? null : allCities || !anchors.length ? '전체 도시' : tripGps ? `내 위치에서 ${SCOPE_KM}km` : `${CITIES[day.city].label} 일정 근처 ${SCOPE_KM}km`;
   const candidates = useMemo(() => {
     if (!filters.length && !nearby) return [];
     const catFilters = filters.filter((f) => f !== OTHER);
@@ -192,6 +252,10 @@ export default function MapScreen({ go, openBooking }) {
   const sheetPad = wide ? 60 : window.innerHeight * ({ peek: 0.26, half: 0.52, full: 0.6 }[snap] + 0.04);
   const padding = { top: alerts.length && !wide ? 380 : 190, bottom: sheetPad, left: 50, right: 70 };
 
+  // 지도 기준점(역 · 공항 · 관광지). 일정 · 후보 마커와 겹치는 건 빼요
+  const markerKey = markers.map((m) => m.id).join();
+  const landmarks = useMemo(() => LANDMARKS.filter((l) => !markers.some((m) => distanceKm(m, l) < 0.12)), [markerKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /* ----- 동작 ----- */
   const onMarker = (m) => {
     if (measure) return pickMeasure(byId[m.id] || m);
@@ -234,12 +298,12 @@ export default function MapScreen({ go, openBooking }) {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const selPlace = selected ? byId[selected] : null;
+  const selPlace = selected ? byId[selected] || LANDMARK_BY_ID[selected] : null;
   const selStop = selPlace && stops.find((s) => s.place?.id === selPlace.id);
 
   return (
     <div className="map-screen has-panel">
-      <MapView markers={markers} routes={routes} me={gps} radius={nearby && ref ? { center: ref, km: radiusKm } : null}
+      <MapView markers={markers} routes={routes} me={tripGps} landmarks={landmarks} onLandmark={(l) => { if (measure) return pickMeasure(l); setSelected(l.id); setSnap('half'); }} radius={nearby && ref ? { center: ref, km: radiusKm } : null}
         measure={measure} onMarker={onMarker} onMapClick={onMapClick} fitKey={fitKey} padding={padding} onMove={setCenter} focus={focus} />
 
       {measure ? (
@@ -261,9 +325,13 @@ export default function MapScreen({ go, openBooking }) {
                 <div className="small muted">{day ? `${dayLabel(day.date).m}월 ${dayLabel(day.date).dd}일 ${dayLabel(day.date).wd}요일` : '10/20 – 11/1 · 12박 13일'}</div>
                 <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>{day ? `Day ${DAYS.indexOf(day) + 1} · ${day.title}${variant && variant.id !== 'main' ? ` · ${variant.label}` : ''}` : '전체 여정'}</div>
               </div>
-              <span className={`badge ${hasFirebase ? 'ok' : 'warn'}`} title={hasFirebase ? '공유 중' : '이 폰에만 저장 중'}>
-                <Icon name="cloud" size={13} />{HAS_TILES ? '오프라인 지도' : '온라인 지도'}
-              </span>
+              {online ? (
+                <span className={`badge ${hasFirebase ? 'ok' : 'warn'}`} title={hasFirebase ? '온라인 · 공유 중' : '온라인 · 이 폰에만 저장 중'}>
+                  <Icon name="wifi" size={13} />온라인
+                </span>
+              ) : (
+                <span className="badge off" title="인터넷 없음 · 저장된 지도와 데이터로 보는 중"><Icon name="cloud" size={13} />오프라인 지도</span>
+              )}
               <button style={{ border: 0, background: 'none', padding: 0 }} onClick={() => go('me')} aria-label="내 정보"><Avatar user={me} size={34} /></button>
             </div>
             <div className="chips" role="tablist" aria-label="날짜">
@@ -316,17 +384,17 @@ export default function MapScreen({ go, openBooking }) {
 
       <Sheet snap={snap} onSnap={setSnap}>
         {measure ? (
-          <MeasurePanel m={measure} gps={gps} onSwap={() => setMeasure({ a: measure.b, b: measure.a })} onUseGps={() => gps && setMeasure({ ...measure, a: { id: 'gps', name: '내 위치', ...gps } })} />
+          <MeasurePanel m={measure} gps={tripGps} onSwap={() => setMeasure({ a: measure.b, b: measure.a })} onUseGps={() => tripGps && setMeasure({ ...measure, a: { id: 'gps', name: '내 위치', ...tripGps } })} />
         ) : selPlace ? (
-          <PlaceDetail place={selPlace} stop={selStop ? { ...selStop, day: day && dayLabel(day.date).md } : null} gps={gps}
+          <PlaceDetail place={selPlace} stop={selStop ? { ...selStop, day: day && dayLabel(day.date).md } : null} gps={tripGps}
             onClose={() => { setSelected(null); setSnap('peek'); }}
             onMeasureFrom={(p) => { setMeasure({ a: { id: p.id, name: p.name, lat: p.lat, lng: p.lng, placeId: p.placeId }, b: null }); setSelected(null); setSnap('peek'); }}
-            onPlan={dayId !== 'all' && !stopPlaceIds.has(selPlace.id) ? togglePlan : null} inPlan={plan.includes(selPlace.id)} />
+            onPlan={dayId !== 'all' && !stopPlaceIds.has(selPlace.id) && !selPlace.landmark ? togglePlan : null} inPlan={plan.includes(selPlace.id)} />
         ) : (
           <>
             {plan.length > 0 && <PlanCard plan={plan} byId={byId} onClear={() => setPlan([])} onPick={(id) => { setSelected(id); setSnap('half'); }} />}
             {candidates.length > 0 || nearby ? (
-              <CandidateList otherDays={otherDays} notes={notes} scopeLabel={scopeLabel} allCities={allCities} onAllCities={() => setAllCities(!allCities)} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
+              <CandidateList otherDays={otherDays} notes={notes} scopeLabel={scopeLabel} allCities={allCities} onAllCities={() => setAllCities(!allCities)} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!tripGps}
                 onPick={(id) => { setSelected(id); setSnap('half'); setFocus({ ...byId[id], key: Date.now() }); }} onPlan={dayId !== 'all' ? togglePlan : null} />
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
@@ -339,6 +407,7 @@ export default function MapScreen({ go, openBooking }) {
       </Sheet>
 
       {legend && <Legend onClose={() => setLegend(false)} />}
+      {gpsHelp && <GpsHelp onClose={() => setGpsHelp(false)} onRetry={() => { setGpsHelp(false); startGps(true); }} />}
       {newPlace && (
         <PlaceEditor city={day?.city} cat={filters.find((f) => CATEGORIES[f])} onClose={() => setNewPlace(false)}
           onSaved={(p) => { setSelected(p.id); setSnap('half'); setFocus({ lat: p.lat, lng: p.lng, zoom: 15, key: Date.now() }); if (!filters.includes(p.cat) && CATEGORIES[p.cat].filter && !stopPlaceIds.has(p.id)) setFilters((f) => [...f, p.cat]); }} />
@@ -354,6 +423,31 @@ export default function MapScreen({ go, openBooking }) {
         </div>
       )}
     </div>
+  );
+}
+
+function GpsHelp({ onClose, onRetry }) {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  return (
+    <Modal onClose={onClose} label="위치 권한 켜기">
+      <ModalHead title="위치 권한을 켜 주세요" sub="한 번 거절하면 폰이 다시 묻지 않아서 직접 켜야 해요" onClose={onClose} />
+      {ios ? (
+        <ol className="help-steps">
+          <li><b>설정 → 개인정보 보호 및 보안 → 위치 서비스</b>를 켜기</li>
+          <li>같은 화면 아래 <b>Safari 웹 사이트</b> → <b>앱을 사용하는 동안</b></li>
+          <li>Safari에서 이 주소를 열고 주소창의 <b>가가(aA) → 웹 사이트 설정 → 위치 → 허용</b></li>
+          <li>앱으로 돌아와 아래 <b>다시 시도</b></li>
+        </ol>
+      ) : (
+        <ol className="help-steps">
+          <li><b>Chrome 앱</b>을 열고 오른쪽 위 <b>⋮ → 설정 → 사이트 설정 → 위치</b></li>
+          <li><b>차단됨</b> 목록에서 <b>may6ixsong.github.io</b>를 눌러 <b>허용</b></li>
+          <li>목록에 없으면 폰 <b>설정 → 애플리케이션 → Chrome → 권한 → 위치 → 앱 사용 중에만 허용</b></li>
+          <li>폰 위쪽 빠른 설정에서 <b>위치</b>가 켜져 있는지 확인하고, 앱으로 돌아와 <b>다시 시도</b></li>
+        </ol>
+      )}
+      <button className="btn primary block" onClick={onRetry}><Icon name="locate" size={18} />다시 시도</button>
+    </Modal>
   );
 }
 

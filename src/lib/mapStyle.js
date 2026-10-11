@@ -67,11 +67,31 @@ export function offlineMapFiles() {
   return files.map((f) => `${BASE}${f}`);
 }
 
-export async function downloadOfflineMap(onProgress) {
+// 같은 파일을 두 번 받지 않도록, 받는 중이면 그 작업에 진행 표시만 붙여요
+let running = null;
+const listeners = new Set();
+
+// force: 나 탭의 '다시 받기' — 저장된 파일도 새로 받아요
+export function downloadOfflineMap(onProgress, force = true) {
+  if (onProgress) listeners.add(onProgress);
+  running ||= doDownload(force).finally(() => {
+    running = null;
+    listeners.clear();
+  });
+  return running;
+}
+export const isDownloadingMap = () => !!running;
+
+async function doDownload(force) {
   const files = offlineMapFiles();
   const cache = await caches.open('offline-tiles');
   let done = 0;
   for (const url of files) {
+    // 이미 저장된 파일은 다시 받지 않아요 (데이터 절약)
+    if (!force && (await cache.match(url))) {
+      done += 1;
+      continue;
+    }
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`${url} ${res.status}`);
     const total = Number(res.headers.get('content-length')) || 0;
@@ -83,7 +103,7 @@ export async function downloadOfflineMap(onProgress) {
       if (end) break;
       chunks.push(value);
       got += value.length;
-      onProgress?.({ file: url, got, total, index: done, count: files.length });
+      listeners.forEach((f) => f({ file: url, got, total, index: done, count: files.length }));
     }
     const blob = new Blob(chunks);
     await cache.put(
@@ -94,6 +114,19 @@ export async function downloadOfflineMap(onProgress) {
   }
   setPref('offlineMapAt', Date.now());
   return done;
+}
+
+// 와이파이에 연결돼 있고 아직 안 받았으면 알아서 받아 둬요 (중간에 끊겼으면 남은 파일만).
+// 모바일 데이터일 때는 받지 않아요. 와이파이인지 알 수 없는 폰(아이폰)은 나 탭에서 직접 받아요.
+export async function autoDownloadOnWifi() {
+  if (!HAS_TILES || !navigator.onLine || navigator.connection?.type !== 'wifi' || navigator.connection?.saveData) return;
+  const st = await offlineMapStatus();
+  if (!st.available || st.saved) return;
+  try {
+    await downloadOfflineMap(null, false);
+  } catch (e) {
+    console.warn('auto map download', e);
+  }
 }
 
 export async function offlineMapStatus() {

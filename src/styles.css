@@ -174,7 +174,8 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 /* 하단 시트: 폰에서는 아래에서 끌어올리고, 넓은 화면(폴드 펼침)에서는 오른쪽 패널 */
 .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--surface); border-radius: 22px 22px 0 0; box-shadow: 0 -6px 20px rgba(20, 30, 40, 0.16); display: flex; flex-direction: column; transition: height 0.22s ease; touch-action: none; }
 .sheet.dragging { transition: none; }
-.sheet-grip { padding: 8px 0 6px; flex-shrink: 0; cursor: grab; }
+.sheet-grip { padding: 10px 0 10px; min-height: 34px; flex-shrink: 0; cursor: grab; position: relative; touch-action: none; }
+.sheet-toggle { position: absolute; right: var(--gutter); top: 6px; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; font-size: 0.74rem; font-weight: 600; min-height: 28px; padding: 0 10px; }
 .sheet-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 var(--gutter) 24px; touch-action: pan-y; }
 @media (min-width: 760px) {
   .map-screen.has-panel .map, .map-screen.has-panel .map-top { right: min(420px, 45%); }
@@ -278,3 +279,20 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .insert-row { display: flex; justify-content: center; gap: 8px; padding: 2px 0; position: relative; }
 .insert-row::before { content: ''; position: absolute; left: 10px; right: 10px; top: 50%; border-top: 1.5px dashed var(--line); }
 .insert-row button { position: relative; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--line); background: var(--surface); color: var(--accent); border-radius: 999px; font-size: 0.72rem; font-weight: 600; min-height: 26px; padding: 0 10px; }
+
+/* 지도 기준점(역 · 항구 · 공항 · 유명 관광지): 작게, 일정 마커 아래에 */
+.lm { display: none; align-items: center; gap: 4px; border: 0; background: none; padding: 0; z-index: 0; cursor: pointer; }
+.lm-dot { width: 9px; height: 9px; border-radius: 50%; background: #8a8f94; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); flex-shrink: 0; }
+.lm-name { font-size: 10.5px; font-weight: 600; color: #4a5056; white-space: nowrap; text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; }
+.lm-airport .lm-dot, .lm-station .lm-dot, .lm-port .lm-dot { border-radius: 3px; background: #5b6770; }
+.lm-airport .lm-dot { background: #3d4c58; width: 11px; height: 11px; }
+.lm-port .lm-dot { background: #3f7ea6; }
+.lm-sight .lm-dot { background: #7a9aa0; }
+.map .lm-airport { display: flex; }
+.map.z-mid .lm-station, .map.z-mid .lm-port { display: flex; }
+.map.z-hi .lm-sight { display: flex; }
+.maplibregl-marker.mk { z-index: 1; }
+.maplibregl-marker.mk.sel { z-index: 3; }
+
+.badge.off { background: #E6E6E3; color: #5E6266; }
+.help-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; line-height: 1.55; font-size: 0.92rem; }
