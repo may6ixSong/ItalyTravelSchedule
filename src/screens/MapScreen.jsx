@@ -17,6 +17,8 @@ import VariantEditor from '../components/VariantEditor.jsx';
 import { hasFirebase, HAS_TILES } from '../config.js';
 
 const LETTERS = 'ABCDEFGHIJ';
+// 후보는 내 위치(GPS) 또는 그날 일정 장소에서 이 거리 안만 보여줘요. 로마에 있을 때 피렌체 식당이 안 나오게.
+const SCOPE_KM = 30;
 const STAY_ROUTE = ['rm-fco', 'rm-hotel', 'na-hotel', 'po-hotel', 'fi-hotel', 'tu-hotel', 'fi-hotel2', 'rm-fco'];
 
 export default function MapScreen({ go, openBooking }) {
@@ -121,15 +123,20 @@ export default function MapScreen({ go, openBooking }) {
 
   /* ----- 후보 ----- */
   const ref = nearby ? gps || center : null;
+  const [allCities, setAllCities] = useState(false);
+  // 기준점: '내 주변'이면 반경, 아니면 GPS 위치 → 없으면 그날 일정 장소들(하루에 두 도시면 둘 다)
+  const anchors = useMemo(() => (gps ? [gps] : stops.filter((s) => s.place).map((s) => s.place)), [gps?.lat, gps?.lng, stops]); // eslint-disable-line react-hooks/exhaustive-deps
+  const scopeLabel = nearby ? null : allCities || !anchors.length ? '전체 도시' : gps ? `내 위치에서 ${SCOPE_KM}km` : `${CITIES[day.city].label} 일정 근처 ${SCOPE_KM}km`;
   const candidates = useMemo(() => {
     if (!filters.length && !nearby) return [];
     const cats = filters.length ? filters : Object.keys(CATEGORIES).filter((c) => CATEGORIES[c].filter);
+    const near = (p) => (anchors.length ? Math.min(...anchors.map((a) => distanceKm(a, p))) : 0);
     return Object.values(byId)
       .filter((p) => cats.includes(p.cat) && !stopPlaceIds.has(p.id))
-      .map((p) => ({ p, d: ref ? distanceKm(ref, p) : dayCenter ? distanceKm(dayCenter, p) : 0 }))
-      .filter(({ d }) => (ref ? d <= radiusKm : dayCenter ? d <= 12 : true))
+      .map((p) => ({ p, d: ref ? distanceKm(ref, p) : near(p) }))
+      .filter(({ d }) => (ref ? d <= radiusKm : allCities || !anchors.length || d <= SCOPE_KM))
       .sort((a, b) => a.d - b.d);
-  }, [filters, nearby, byId, ref?.lat, ref?.lng, radiusKm, dayCenter, dayId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters, nearby, byId, ref?.lat, ref?.lng, radiusKm, anchors, allCities]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ----- 마커 · 선 ----- */
   const markers = useMemo(() => {
@@ -194,7 +201,11 @@ export default function MapScreen({ go, openBooking }) {
     if (measure) pickMeasure(pt);
   };
   const togglePlan = (p) => setPlan(plan.includes(p.id) ? plan.filter((x) => x !== p.id) : [...plan, p.id].slice(0, 10));
-  const toggleFilter = (c) => setFilters((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]));
+  const toggleFilter = (c) => {
+    // 처음 필터를 켤 때 위치를 같이 찾아서, 지금 있는 도시의 후보만 보여줘요 (권한이 없으면 그날 일정 기준)
+    if (!filters.length && !filters.includes(c)) startGps(false);
+    setFilters((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]));
+  };
   const toggleNearby = () => {
     if (!nearby) startGps(false);
     setNearby(!nearby);
@@ -300,7 +311,7 @@ export default function MapScreen({ go, openBooking }) {
           <>
             {plan.length > 0 && <PlanCard plan={plan} byId={byId} onClear={() => setPlan([])} onPick={(id) => { setSelected(id); setSnap('half'); }} />}
             {candidates.length > 0 || nearby ? (
-              <CandidateList notes={notes} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
+              <CandidateList notes={notes} scopeLabel={scopeLabel} allCities={allCities} onAllCities={() => setAllCities(!allCities)} list={candidates} plan={plan} nearby={nearby} radiusKm={radiusKm} hasGps={!!gps}
                 onPick={(id) => { setSelected(id); setSnap('half'); setFocus({ ...byId[id], key: Date.now() }); }} onPlan={dayId !== 'all' ? togglePlan : null} />
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
@@ -414,11 +425,15 @@ function TripList({ byId, onDay }) {
   );
 }
 
-function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan, notes }) {
+function CandidateList({ list, plan, nearby, radiusKm, hasGps, onPick, onPlan, notes, scopeLabel, allCities, onAllCities }) {
   return (
     <>
       <div className="row" style={{ marginBottom: 8 }}>
-        <b className="grow">{nearby ? `반경 ${radiusKm < 1 ? '500m' : radiusKm + 'km'} 안 후보 ${list.length}곳` : `이 근처 후보 ${list.length}곳`}</b>
+        <span className="grow">
+          <b>{nearby ? `반경 ${radiusKm < 1 ? '500m' : radiusKm + 'km'} 안 후보 ${list.length}곳` : `후보 ${list.length}곳`}</b>
+          {scopeLabel && <span className="tiny muted" style={{ display: 'block' }}>{scopeLabel} 기준</span>}
+        </span>
+        {!nearby && <button className="btn small" onClick={onAllCities}>{allCities ? '근처만 보기' : '전체 도시 보기'}</button>}
         {nearby && !hasGps && <span className="tiny muted">위치 찾는 중 · 지도 중심 기준</span>}
       </div>
       {list.length === 0 && <div className="empty">조건에 맞는 후보가 없어요. 반경을 넓히거나 필터를 바꿔보세요.</div>}
