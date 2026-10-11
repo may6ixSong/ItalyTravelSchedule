@@ -32,7 +32,8 @@ export function directionsUrl(dest, origin = null, mode = null) {
 
 export function placeUrl(p) {
   // 직접 등록할 때 넣은 구글맵 링크가 있으면 그걸 그대로 열어요
-  if (/^https?:\/\//.test(p.gmaps || '')) return p.gmaps;
+  // PC에서 복사한 google.co.kr 링크도 www.google.com으로 바꿔서 폰에서 구글맵 앱으로 바로 열리게 해요
+  if (/^https?:\/\//.test(p.gmaps || '')) return p.gmaps.replace(/^https?:\/\/(www\.)?google\.[a-z.]+\/maps/, 'https://www.google.com/maps');
   const u = new URLSearchParams({ api: '1', query: p.placeId ? p.name : q(p) });
   if (p.placeId) u.set('query_place_id', p.placeId);
   return `https://www.google.com/maps/search/?${u}`;
