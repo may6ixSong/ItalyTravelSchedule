@@ -101,6 +101,8 @@ export default function MeScreen({ setMe }) {
         </section>
 
         <section className="card pad small muted" style={{ lineHeight: 1.6 }}>
+          앱 버전: {__BUILD_TIME__} 배포 (이탈리아 시간)<br />
+          새 버전은 인터넷이 될 때 앱을 다시 열면 자동으로 바뀌고, 저장된 기록은 그대로예요.<br /><br />
           홈 화면에 추가하면 앱처럼 열려요.<br />
           갤럭시: 크롬 메뉴 ⋮ → 홈 화면에 추가 · 아이폰: 사파리 공유 버튼 → 홈 화면에 추가
         </section>

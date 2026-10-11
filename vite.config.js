@@ -11,6 +11,8 @@ process.env.VITE_HAS_ROUTE_TILES = existsSync('public/tiles/route.pmtiles') ? '1
 
 export default defineConfig({
   base,
+  // 나 탭에 보여줄 앱 버전(배포 시각, 이탈리아 시간)
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toLocaleString('ko-KR', { timeZone: 'Europe/Rome', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })) },
   plugins: [
     react(),
     VitePWA({
