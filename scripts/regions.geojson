@@ -1,0 +1,13 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "name": "로마 (+피우미치노 공항 쪽 일부)" }, "geometry": { "type": "Polygon", "coordinates": [[[12.40, 41.85], [12.56, 41.85], [12.56, 41.94], [12.40, 41.94], [12.40, 41.85]]] } },
+    { "type": "Feature", "properties": { "name": "나폴리" }, "geometry": { "type": "Polygon", "coordinates": [[[14.15, 40.80], [14.31, 40.80], [14.31, 40.87], [14.15, 40.87], [14.15, 40.80]]] } },
+    { "type": "Feature", "properties": { "name": "카프리" }, "geometry": { "type": "Polygon", "coordinates": [[[14.19, 40.53], [14.27, 40.53], [14.27, 40.57], [14.19, 40.57], [14.19, 40.53]]] } },
+    { "type": "Feature", "properties": { "name": "소렌토 · 포지타노" }, "geometry": { "type": "Polygon", "coordinates": [[[14.35, 40.60], [14.52, 40.60], [14.52, 40.66], [14.35, 40.66], [14.35, 40.60]]] } },
+    { "type": "Feature", "properties": { "name": "피렌체" }, "geometry": { "type": "Polygon", "coordinates": [[[11.20, 43.75], [11.30, 43.75], [11.30, 43.80], [11.20, 43.80], [11.20, 43.75]]] } },
+    { "type": "Feature", "properties": { "name": "피사" }, "geometry": { "type": "Polygon", "coordinates": [[[10.38, 43.70], [10.41, 43.70], [10.41, 43.73], [10.38, 43.73], [10.38, 43.70]]] } },
+    { "type": "Feature", "properties": { "name": "끼안띠 (그레베)" }, "geometry": { "type": "Polygon", "coordinates": [[[11.25, 43.56], [11.36, 43.56], [11.36, 43.64], [11.25, 43.64], [11.25, 43.56]]] } },
+    { "type": "Feature", "properties": { "name": "더 몰 피렌체" }, "geometry": { "type": "Polygon", "coordinates": [[[11.43, 43.70], [11.48, 43.70], [11.48, 43.73], [11.43, 43.73], [11.43, 43.70]]] } }
+  ]
+}

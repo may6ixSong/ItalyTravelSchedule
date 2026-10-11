@@ -1,0 +1,7 @@
+node_modules
+dist
+dev-dist
+# 배포할 때 GitHub Actions가 받아오는 오프라인 지도 (용량이 커서 저장소에는 안 넣음)
+public/tiles
+public/basemaps-assets
+.env*

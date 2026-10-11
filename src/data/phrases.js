@@ -1,0 +1,130 @@
+// 여행 이탈리아어. [이탈리아어, 한글 발음, 뜻]
+
+export const BASICS = [
+  ['Buongiorno', '부온조르노', '안녕하세요 (낮)'],
+  ['Buonasera', '부오나세라', '안녕하세요 (저녁)'],
+  ['Grazie (mille)', '그라치에 (밀레)', '감사합니다 (정말)'],
+  ['Prego', '프레고', '천만에요 / 여기요'],
+  ['Per favore', '페르 파보레', '부탁해요'],
+  ['Scusi', '스쿠지', '실례합니다 / 죄송해요'],
+  ['Sì / No', '씨 / 노', '네 / 아니요'],
+  ['Arrivederci', '아리베데르치', '안녕히 계세요'],
+];
+
+export const PHRASE_GROUPS = [
+  {
+    id: 'meal', label: '식당', tip: '자리에 앉으면 1인당 자릿세(coperto)가 붙는 곳이 많아요. 팁은 의무가 아니에요.',
+    items: [
+      ['Buonasera, un tavolo per due, per favore.', '부오나세라, 운 타볼로 페르 두에, 페르 파보레', '안녕하세요, 2명 자리 부탁해요'],
+      ['Ho una prenotazione a nome ___.', '오 우나 프레노타치오네 아 노메 ___', '___ 이름으로 예약했어요'],
+      ['Possiamo vedere il menù?', '포시아모 베데레 일 메누?', '메뉴 볼 수 있을까요?'],
+      ['Cosa ci consiglia?', '코자 치 콘실리아?', '뭘 추천하세요?'],
+      ["Un'acqua naturale / frizzante.", '운아쿠아 나투랄레 / 프리찬테', '생수 / 탄산수 하나요'],
+      ['Un bicchiere di vino rosso / bianco.', '운 비키에레 디 비노 로쏘 / 비앙코', '레드 / 화이트 와인 한 잔'],
+      ['Sono allergico a ___.', '소노 알레르지코 아 ___', '___ 알레르기가 있어요 (여성은 알레르지카)'],
+      ['Era buonissimo!', '에라 부오니씨모!', '정말 맛있었어요!'],
+      ['Il conto, per favore.', '일 콘토, 페르 파보레', '계산서 주세요'],
+      ['Possiamo pagare separatamente?', '포시아모 파가레 세파라타멘테?', '따로 계산해도 될까요?'],
+    ],
+  },
+  {
+    id: 'cafe', label: '카페 · 바', tip: '바에 서서(al banco) 마시면 테이블보다 싸요. 계산대(cassa)에서 먼저 결제하고 영수증을 바리스타에게 주면 돼요.',
+    items: [
+      ['Un caffè, per favore.', '운 카페, 페르 파보레', '에스프레소 한 잔 주세요'],
+      ['Un cappuccino e un cornetto.', '운 카푸치노 에 운 코르네토', '카푸치노랑 크루아상 하나요'],
+      ['Un caffè macchiato.', '운 카페 마키아토', '우유 거품 살짝 올린 에스프레소'],
+      ['Un caffè americano.', '운 카페 아메리카노', '아메리카노 한 잔'],
+      ['Al banco o al tavolo?', '알 반코 오 알 타볼로?', '(직원) 서서 드세요, 앉아서 드세요?'],
+      ['Al banco, grazie.', '알 반코, 그라치에', '서서 마실게요'],
+      ['Da portare via.', '다 포르타레 비아', '포장이요'],
+      ['Senza zucchero.', '센차 추케로', '설탕 빼고요'],
+      ['Posso pagare con la carta?', '포쏘 파가레 콘 라 카르타?', '카드로 계산해도 되나요?'],
+    ],
+  },
+  {
+    id: 'gelato', label: '젤라또', tip: '먼저 계산하고 영수증을 보여주며 맛을 고르는 가게가 많아요.',
+    items: [
+      ['Un cono / una coppetta, per favore.', '운 코노 / 우나 코페타, 페르 파보레', '콘 / 컵으로 주세요'],
+      ['Piccolo, medio, grande', '피콜로, 메디오, 그란데', '작은 거, 중간, 큰 거'],
+      ['Due gusti: pistacchio e nocciola.', '두에 구스티: 피스타키오 에 노촐라', '두 가지 맛: 피스타치오랑 헤이즐넛'],
+      ['Posso assaggiare?', '포쏘 아싸자레?', '맛봐도 돼요?'],
+      ['Con panna, per favore.', '콘 판나, 페르 파보레', '생크림 올려주세요'],
+      ['Quanto costa?', '콴토 코스타?', '얼마예요?'],
+    ],
+  },
+  {
+    id: 'pub', label: '펍 · 와인바', tip: '저녁 6~8시 아페리티보 시간에는 음료를 시키면 간단한 안주가 같이 나오는 곳이 많아요.',
+    items: [
+      ['Una birra alla spina, per favore.', '우나 비라 알라 스피나, 페르 파보레', '생맥주 한 잔 주세요'],
+      ['Un calice di vino della casa.', '운 칼리체 디 비노 델라 카자', '하우스 와인 한 잔'],
+      ['Uno spritz, per favore.', '우노 스프리츠, 페르 파보레', '스프리츠 한 잔 주세요'],
+      ['Avete qualcosa di analcolico?', '아베테 콸코자 디 아날콜리코?', '무알콜 음료 있나요?'],
+      ['Un altro, per favore.', '운 알트로, 페르 파보레', '한 잔 더요'],
+      ['Cin cin!', '친 친!', '건배!'],
+    ],
+  },
+  {
+    id: 'shop', label: '쇼핑', tip: '한 가게에서 70유로 이상 사면 택스 리펀(Tax Free)을 받을 수 있어요. 여권을 챙기세요.',
+    items: [
+      ['Sto solo guardando, grazie.', '스토 솔로 과르단도, 그라치에', '그냥 둘러보는 중이에요'],
+      ['Posso provarlo?', '포쏘 프로바를로?', '입어봐도 돼요?'],
+      ['Avete una taglia più grande / piccola?', '아베테 우나 탈리아 퓨 그란데 / 피콜라?', '더 큰 / 작은 사이즈 있나요?'],
+      ['Quanto costa?', '콴토 코스타?', '얼마예요?'],
+      ['Lo prendo.', '로 프렌도', '이걸로 할게요'],
+      ['Posso avere il modulo tax free?', '포쏘 아베레 일 모둘로 텍스 프리?', '택스 리펀 서류 받을 수 있나요?'],
+      ['Me lo può incartare?', '메 로 푸오 인카르타레?', '포장해 주실 수 있나요?'],
+    ],
+  },
+  {
+    id: 'move', label: '교통', tip: '지역 열차(Regionale) 종이표는 타기 전에 꼭 개찰기에 찍어야 해요. 안 찍으면 벌금이에요.',
+    items: [
+      ['Un biglietto per ___, per favore.', '운 빌리에토 페르 ___, 페르 파보레', '___행 표 한 장 주세요'],
+      ['Andata e ritorno.', '안다타 에 리토르노', '왕복이요'],
+      ['Da quale binario parte?', '다 콸레 비나리오 파르테?', '몇 번 플랫폼에서 출발해요?'],
+      ['Questo treno va a ___?', '쿠에스토 트레노 바 아 ___?', '이 기차 ___ 가요?'],
+      ['Il treno è in ritardo?', '일 트레노 에 인 리타르도?', '기차가 연착됐나요?'],
+      ["Dov'è la fermata dell'autobus?", '도베 라 페르마타 델라우토부스?', '버스 정류장 어디예요?'],
+      ['Mi porta a questo indirizzo, per favore.', '미 포르타 아 쿠에스토 인디리초, 페르 파보레', '(택시) 이 주소로 가주세요'],
+      ['Quanto costa fino a ___?', '콴토 코스타 피노 아 ___?', '___까지 얼마예요?'],
+      ['Il pieno, per favore.', '일 피에노, 페르 파보레', '(주유) 가득 채워주세요'],
+    ],
+  },
+  {
+    id: 'public', label: '화장실 · 길', tip: '공중화장실은 대부분 유료(0.5~1.5유로)예요. 동전을 챙기세요.',
+    items: [
+      ["Dov'è il bagno?", '도베 일 바뇨?', '화장실 어디예요?'],
+      ['Posso usare il bagno?', '포쏘 우자레 일 바뇨?', '화장실 써도 돼요?'],
+      ["Scusi, dov'è ___?", '스쿠지, 도베 ___?', '실례지만 ___ 어디예요?'],
+      ['È lontano?', '에 론타노?', '멀어요?'],
+      ['Mi può fare una foto?', '미 푸오 파레 우나 포토?', '사진 찍어주실 수 있나요?'],
+      ['Parla inglese?', '파를라 잉글레제?', '영어 하세요?'],
+      ['Non capisco.', '논 카피스코', '이해 못 했어요'],
+      ['Può ripetere, per favore?', '푸오 리페테레, 페르 파보레?', '다시 말씀해 주실래요?'],
+    ],
+  },
+  {
+    id: 'stay', label: '숙소', tip: '이탈리아는 숙소에서 도시세(tassa di soggiorno)를 현장 결제하는 경우가 많아요.',
+    items: [
+      ['Ho una prenotazione a nome ___.', '오 우나 프레노타치오네 아 노메 ___', '___ 이름으로 예약했어요'],
+      ["A che ora è il check-out?", '아 케 오라 에 일 체크아웃?', '체크아웃 몇 시예요?'],
+      ['Posso lasciare i bagagli qui?', '포쏘 라샤레 이 바갈리 퀴?', '짐 여기 맡겨도 돼요?'],
+      ['Qual è la password del Wi-Fi?', '콸 에 라 파스워드 델 와이파이?', '와이파이 비밀번호가 뭐예요?'],
+      ['La colazione è inclusa?', '라 콜라치오네 에 인클루자?', '조식 포함인가요?'],
+      ['Dobbiamo pagare la tassa di soggiorno?', '도비아모 파가레 라 타싸 디 소조르노?', '도시세 내야 하나요?'],
+      ["Non funziona l'aria condizionata.", '논 푼치오나 라리아 콘디치오나타', '에어컨이 안 돼요'],
+    ],
+  },
+  {
+    id: 'sos', label: '긴급 · 약국', tip: '유럽 긴급전화는 112예요. 약국(Farmacia)은 초록 십자가 간판이에요.',
+    items: [
+      ['Aiuto!', '아이우토!', '도와주세요!'],
+      ["Chiami un'ambulanza!", '키아미 운암불란차!', '구급차 불러주세요!'],
+      ['Chiami la polizia!', '키아미 라 폴리치아!', '경찰 불러주세요!'],
+      ['Mi hanno rubato il portafoglio.', '미 안노 루바토 일 포르타폴리오', '지갑을 도둑맞았어요'],
+      ['Ho perso il passaporto.', '오 페르소 일 파싸포르토', '여권을 잃어버렸어요'],
+      ["Dov'è la farmacia più vicina?", '도베 라 파르마치아 퓨 비치나?', '가장 가까운 약국 어디예요?'],
+      ['Ho mal di testa / mal di stomaco.', '오 말 디 테스타 / 말 디 스토마코', '머리가 / 배가 아파요'],
+      ['Ho la febbre.', '오 라 페브레', '열이 나요'],
+    ],
+  },
+];
