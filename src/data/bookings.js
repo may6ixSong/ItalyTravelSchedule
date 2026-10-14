@@ -1,5 +1,6 @@
 // 예약 목록 (숙소 · 교통 · 투어). 기차 · 페리 · 항공 · 투어 · 렌터카는 당일 지도 위에 알림 카드로 뜹니다.
 // 실제 예약번호 · 시간이 정해지면 이 파일을 채우면 됩니다. link는 예약 확인 페이지나 앱 링크입니다.
+// 앱에서 추가 · 고친 예약은 공유 DB(settings/userBookings)에 저장돼 이 목록 위에 덮어씌워져요.
 
 export const BOOKING_TYPES = {
   stay: { label: '숙소', alert: false },
@@ -28,6 +29,7 @@ export const BOOKINGS = [
   B('b-stay-positano', 'stay', '2026-10-26', 'Le Sirenuse · 포지타노', { endDate: '2026-10-27', place: 'po-hotel' }),
   B('b-train-nf', 'train', '2026-10-27', '나폴리 → 피렌체 기차', { time: '15:25', sub: '15:25 – 18:31 · Napoli Centrale · 79.8€', place: 'na-centrale' }),
   B('b-stay-florence', 'stay', '2026-10-27', '리사하우스 2호점 · 피렌체', { endDate: '2026-10-30', sub: 'Via Luigi Alamanni 35', place: 'fi-hotel' }),
+  B('b-dalloste', 'meal', '2026-10-28', 'Trattoria Dalloste 저녁 예약', { time: '19:30', place: 'fi-dalloste3', sub: 'TheFork 앱 예약 · 비스테카 알라 피오렌티나' }),
   B('b-car', 'car', '2026-10-30', '피렌체 렌터카 픽업', { time: '', sub: '10/30 – 10/31 반납', place: 'fi-smn' }),
   B('b-stay-chianti', 'stay', '2026-10-30', 'Corte di Valle · 끼안띠', { endDate: '2026-10-31', place: 'tu-hotel' }),
   B('b-stay-florence2', 'stay', '2026-10-31', '호텔 팔라쪼 베키오 · 피렌체', { endDate: '2026-11-01', place: 'fi-hotel2' }),

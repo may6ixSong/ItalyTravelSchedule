@@ -102,9 +102,20 @@ export function Stars({ value, size }) {
 // 슬라이드 위에 슬라이드가 겹쳐도 뒤로가기는 맨 위 것만 닫도록 쌓아서 관리합니다.
 const stack = [];
 let ignorePops = 0;
+// 한 슬라이드가 닫히면서(뒤로 가기 대기 중) 다른 슬라이드가 바로 열리면, 뒤로 가기가 끝난 뒤에 새 기록을 쌓아요.
+// 순서가 꼬이면 새 슬라이드의 기록이 지워져서 나중에 닫을 때 한 칸 더 뒤로(다른 탭으로) 가 버려요.
+let waiting = [];
+const pushEntry = (entry) => {
+  entry.pushed = true;
+  history.pushState({ modal: stack.length }, '');
+};
 if (typeof window !== 'undefined') {
   window.addEventListener('popstate', () => {
-    if (ignorePops > 0) return void (ignorePops -= 1);
+    if (ignorePops > 0) {
+      ignorePops -= 1;
+      if (ignorePops === 0) waiting.splice(0).forEach(pushEntry);
+      return;
+    }
     const top = stack.pop();
     if (top) {
       top.popped = true;
@@ -117,9 +128,10 @@ export function Modal({ onClose, children, dark, label }) {
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
-    const entry = { close: () => close.current(), popped: false };
+    const entry = { close: () => close.current(), popped: false, pushed: false };
     stack.push(entry);
-    history.pushState({ modal: stack.length }, '');
+    if (ignorePops > 0) waiting.push(entry);
+    else pushEntry(entry);
     const onKey = (e) => e.key === 'Escape' && stack[stack.length - 1] === entry && close.current();
     window.addEventListener('keydown', onKey);
     return () => {
@@ -127,8 +139,12 @@ export function Modal({ onClose, children, dark, label }) {
       if (!entry.popped) {
         const i = stack.indexOf(entry);
         if (i >= 0) stack.splice(i, 1);
-        ignorePops += 1;
-        history.back();
+        if (entry.pushed) {
+          ignorePops += 1;
+          history.back();
+        } else {
+          waiting = waiting.filter((x) => x !== entry);
+        }
       }
     };
   }, []);

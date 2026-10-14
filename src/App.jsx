@@ -7,7 +7,8 @@ import MeScreen from './screens/MeScreen.jsx';
 import Onboarding from './screens/Onboarding.jsx';
 import { Icon } from './components/ui.jsx';
 import { MeContext, linkToFirebase, loadMe } from './lib/user.js';
-import { BOOKINGS, BOOKING_TYPES } from './data/bookings.js';
+import { BOOKING_TYPES } from './data/bookings.js';
+import { useBookings } from './lib/bookings.js';
 import { todayIso } from './data/itinerary.js';
 import { hasFirebase } from './config.js';
 import { autoDownloadOnWifi } from './lib/mapStyle.js';
@@ -60,10 +61,11 @@ export default function App() {
     location.hash = s ? `${t}/${s}` : t;
   };
 
+  const bookings = useBookings();
   if (!me) return <Onboarding onDone={setMe} />;
 
   const today = todayIso();
-  const hasAlert = BOOKINGS.some((b) => b.date === today && BOOKING_TYPES[b.type].alert);
+  const hasAlert = bookings.some((b) => b.date === today && BOOKING_TYPES[b.type].alert);
 
   return (
     <MeContext.Provider value={me}>

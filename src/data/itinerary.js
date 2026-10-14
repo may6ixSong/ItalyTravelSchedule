@@ -127,7 +127,7 @@ export const DAYS = [
     A('fi-uffizi', '오후'),
     A('fi-vecchio', '오후'),
     A('fi-michelangelo', '오후'),
-    A('fi-pastella', '저녁'),
+    R('fi-dalloste3', '19:30', '저녁 · TheFork 예약 · 비스테카 알라 피오렌티나', 'Trattoria Dalloste (예약)'),
     R('fi-hotel', '밤', '숙소 복귀'),
   ] },
   { id: 'd10', date: '2026-10-29', city: 'pisa', title: '피사', stops: [

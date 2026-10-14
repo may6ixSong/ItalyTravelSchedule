@@ -128,7 +128,7 @@ export default function VariantEditor({ day, base, editing, onClose, onSaved }) 
   );
 }
 
-function PlacePicker({ city, places, chosen, onPick, onClose, where }) {
+export function PlacePicker({ city, places, chosen, onPick, onClose, where }) {
   const [creating, setCreating] = useState(false);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('');

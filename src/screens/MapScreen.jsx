@@ -25,7 +25,8 @@ import { LANDMARKS, LANDMARK_BY_ID } from '../data/landmarks.js';
 import { useOnline, connectionType } from '../lib/online.js';
 import { offlineMapStatus } from '../lib/mapStyle.js';
 import { DAYS, dayLabel, todayIso } from '../data/itinerary.js';
-import { BOOKINGS, BOOKING_TYPES } from '../data/bookings.js';
+import { BOOKING_TYPES } from '../data/bookings.js';
+import { useBookings } from '../lib/bookings.js';
 import { usePlaces } from '../lib/places.js';
 import { directionsUrl, distanceKm, formatKm, walkMinutes } from '../lib/geo.js';
 import { getPref, patch, setPref, useDoc } from '../lib/store.js';
@@ -83,6 +84,7 @@ export default function MapScreen({ go, openBooking }) {
   const allWeather = useWeather();
   const weather = online ? allWeather : {};
   const topRef = useRef(null);
+  const bookings = useBookings();
   const [dismissed, setDismissed] = useState(() => getPref(`dismiss:${today}`, []));
   const watch = useRef(null);
 
@@ -276,7 +278,7 @@ export default function MapScreen({ go, openBooking }) {
     return r;
   }, [dayId, stops, plan, byId, day]);
 
-  const alerts = BOOKINGS.filter((b) => b.date === today && BOOKING_TYPES[b.type].alert && !dismissed.includes(b.id));
+  const alerts = bookings.filter((b) => b.date === today && BOOKING_TYPES[b.type].alert && !dismissed.includes(b.id));
   const fitKey = `${dayId}:${variant?.id}`;
   const sheetPad = wide ? 60 : window.innerHeight * ({ peek: 0.26, half: 0.52, full: 0.6 }[snap] + 0.04);
   const padding = { top: alerts.length && !wide ? 380 : 190, bottom: sheetPad, left: 50, right: 70 };
