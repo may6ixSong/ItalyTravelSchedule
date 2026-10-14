@@ -11,7 +11,7 @@ import { BOOKINGS, BOOKING_TYPES } from './data/bookings.js';
 import { todayIso } from './data/itinerary.js';
 import { hasFirebase } from './config.js';
 import { autoDownloadOnWifi } from './lib/mapStyle.js';
-import { refreshWeatherIfStale } from './lib/weather.js';
+import { fetchWeatherOnLaunch } from './lib/weather.js';
 
 const TABS = [
   ['map', '지도', 'map'],
@@ -49,12 +49,8 @@ export default function App() {
       navigator.connection?.removeEventListener?.('change', run);
     };
   }, []);
-  // 날씨: 앱을 켤 때(그리고 다시 온라인이 될 때) 여행 날짜 전체를 받아 두기
-  useEffect(() => {
-    refreshWeatherIfStale();
-    window.addEventListener('online', refreshWeatherIfStale);
-    return () => window.removeEventListener('online', refreshWeatherIfStale);
-  }, []);
+  // 날씨: 앱을 켤 때 온라인이면 여행 날짜 전체를 한 번만 받아 두기 (데이터 아끼기)
+  useEffect(() => fetchWeatherOnLaunch(), []);
   // Firebase 익명 로그인 유지 (오프라인이면 저장된 로그인 사용)
   useEffect(() => {
     if (me && hasFirebase && !me.dev) linkToFirebase(me).then((next) => next !== me && setMe(next)).catch(() => {});
