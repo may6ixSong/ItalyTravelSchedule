@@ -79,8 +79,9 @@ export default function MapScreen({ go, openBooking }) {
     setPref('panelOpen', open);
   };
   const online = useOnline();
-  // 날씨: 날짜 칩에 표시하고, 날짜를 고르면 3초 동안 지도에 애니메이션
-  const weather = useWeather();
+  // 날씨: 날짜 칩에 표시하고, 날짜를 고르면 3초 동안 지도에 애니메이션. 오프라인이면 날씨는 아예 안 보여요
+  const allWeather = useWeather();
+  const weather = online ? allWeather : {};
   const topRef = useRef(null);
   const [dismissed, setDismissed] = useState(() => getPref(`dismiss:${today}`, []));
   const watch = useRef(null);

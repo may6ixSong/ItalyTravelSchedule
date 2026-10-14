@@ -1,5 +1,5 @@
 // 날짜별 날씨 (그날 밤 묵는 숙소 기준). 온라인일 때 Open-Meteo(키 없음)에서 받아 공유 DB(settings/weather)에 올려 두 폰이 같이 씁니다.
-// 예보는 16일 앞까지만 나와서, 먼 날짜는 앱을 다시 열 때 채워져요. 오프라인이면 마지막으로 받은 값을 씁니다.
+// 예보는 16일 앞까지만 나와서, 먼 날짜는 앱을 다시 열 때 채워져요. 오프라인일 때는 지도 화면에서 날씨를 아예 보여주지 않아요.
 import { useEffect, useState } from 'react';
 import { DAYS } from '../data/itinerary.js';
 import { CITIES, PLACE_BY_ID } from '../data/places.js';
