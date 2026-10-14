@@ -33,6 +33,8 @@ import { useMe } from '../lib/user.js';
 import { useNotes } from '../lib/notes.js';
 import { chooseVariant, usePlaceDays, useVariants } from '../lib/variants.js';
 import VariantEditor from '../components/VariantEditor.jsx';
+import WeatherFx, { WeatherCard, useWeatherPlay } from '../components/WeatherFx.jsx';
+import { useWeather, weatherCity, WEATHER_KINDS } from '../lib/weather.js';
 import PlaceEditor from '../components/PlaceEditor.jsx';
 import { hasFirebase, HAS_TILES } from '../config.js';
 
@@ -77,6 +79,9 @@ export default function MapScreen({ go, openBooking }) {
     setPref('panelOpen', open);
   };
   const online = useOnline();
+  // 날씨: 날짜 칩에 표시하고, 날짜를 고르면 3초 동안 지도에 애니메이션
+  const weather = useWeather();
+  const topRef = useRef(null);
   const [dismissed, setDismissed] = useState(() => getPref(`dismiss:${today}`, []));
   const watch = useRef(null);
 
@@ -321,13 +326,17 @@ export default function MapScreen({ go, openBooking }) {
     return () => clearTimeout(t);
   }, [toast]);
 
+  const dayWeather = day ? weather[day.date] : null;
+  const wxShow = useWeatherPlay(dayWeather?.kind, dayId);
+
   const selPlace = selected ? byId[selected] || LANDMARK_BY_ID[selected] : null;
   const selStop = selPlace && stops.find((s) => s.place?.id === selPlace.id);
 
   return (
-    <div className={`map-screen has-panel${panelOpen ? '' : ' panel-closed'}`} style={{ '--panel-w': `${panelW}px` }}>
+    <div className={`map-screen has-panel${panelOpen ? '' : ' panel-closed'}`} style={{ '--panel-w': `${panelW}px`, '--wx-top': `${topRef.current?.querySelector('.map-head')?.offsetHeight || 0}px` }}>
       <MapView markers={markers} routes={routes} me={tripGps} landmarks={landmarks} onLandmark={(l) => { if (measure) return pickMeasure(l); setSelected(l.id); setSnap('half'); }} radius={nearby && ref ? { center: ref, km: radiusKm } : null}
         measure={measure} onMarker={onMarker} onMapClick={onMapClick} fitKey={fitKey} padding={padding} onMove={setCenter} focus={focus} />
+      {!measure && <WeatherFx show={wxShow} />}
 
       {measure ? (
         <div className="measure-bar">
@@ -341,7 +350,7 @@ export default function MapScreen({ go, openBooking }) {
           <button className="icon-btn" style={{ background: '#2c343c', color: '#fff', borderRadius: 20, width: 38, height: 38 }} onClick={() => setMeasure(null)} aria-label="거리 재기 끝내기"><Icon name="x" size={16} /></button>
         </div>
       ) : (
-        <div className="map-top">
+        <div className="map-top" ref={topRef}>
           <header className="map-head">
             <div className="row">
               <div className="grow">
@@ -365,6 +374,7 @@ export default function MapScreen({ go, openBooking }) {
                 return (
                   <button key={d.id} className={`chip day-chip ${on ? 'solid' : ''}`} style={{ '--c': CITIES[d.city].color }} onClick={() => setDayId(d.id)}>
                     <span className="dot-c" />{l.dd} {l.wd}{d.date === today && <b> · 오늘</b>}
+                    {weather[d.date] && <><span className="wx-ico" aria-label={WEATHER_KINDS[weather[d.date].kind].label}>{WEATHER_KINDS[weather[d.date].kind].icon}</span><span className="wx-t">{weather[d.date].tmax}°</span></>}
                   </button>
                 );
               })}
@@ -395,6 +405,7 @@ export default function MapScreen({ go, openBooking }) {
           {alerts.map((b) => (
             <div className="map-banner" key={b.id}><TodayAlert b={b} place={byId[b.place]} onDismiss={() => dismiss(b)} onOpen={() => openBooking(b)} /></div>
           ))}
+          <WeatherCard show={wxShow} weather={dayWeather} city={day && weatherCity(day.date)} />
         </div>
       )}
 
