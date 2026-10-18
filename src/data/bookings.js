@@ -9,6 +9,7 @@ export const BOOKING_TYPES = {
   flight: { label: '항공', alert: true },
   tour: { label: '투어', alert: true },
   car: { label: '렌터카', alert: true },
+  taxi: { label: '택시', alert: true },
   meal: { label: '식당 예약', alert: true },
 };
 
@@ -31,6 +32,10 @@ export const BOOKINGS = [
   }),
   B('b-ferry-np', 'ferry', '2026-10-26', '나폴리 → 포지타노 페리', { time: '', sub: 'Molo Beverello', place: 'na-beverello' }),
   B('b-stay-positano', 'stay', '2026-10-26', 'Le Sirenuse · 포지타노', { endDate: '2026-10-27', place: 'po-hotel' }),
+  B('b-taxi-pn', 'taxi', '2026-10-27', '포지타노 → 나폴리역 택시 (예약 전)', {
+    time: '', sub: '아직 예약 안 함 · 15:25 나폴리 → 피렌체 기차 시간에 맞춰 예약', place: 'po-hotel',
+    link: 'https://www.transfernaples.it/en/transfer/positano/stazione-napoli',
+  }),
   B('b-train-nf', 'train', '2026-10-27', '나폴리 → 피렌체 기차', { time: '15:25', sub: '15:25 – 18:31 · Napoli Centrale · 79.8€', place: 'na-centrale' }),
   B('b-stay-florence', 'stay', '2026-10-27', '리사하우스 2호점 · 피렌체', { endDate: '2026-10-30', sub: 'Via Luigi Alamanni 35', place: 'fi-hotel' }),
   B('b-dalloste', 'meal', '2026-10-28', 'Trattoria Dalloste 저녁 예약', { time: '19:30', place: 'fi-dalloste3', sub: 'TheFork 앱 예약 · 비스테카 알라 피오렌티나' }),
