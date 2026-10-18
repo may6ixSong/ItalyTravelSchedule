@@ -25,6 +25,10 @@ export const BOOKINGS = [
   B('b-train-rn', 'train', '2026-10-23', '로마 → 나폴리 기차', { time: '12:41', sub: '12:41 – 13:58 · Roma Termini · 45.8€', place: 'rm-termini' }),
   B('b-stay-naples', 'stay', '2026-10-23', 'Napolart · 나폴리', { endDate: '2026-10-26', sub: 'Via Medina 17', place: 'na-hotel' }),
   B('b-capri', 'tour', '2026-10-24', '카프리 투어', { time: '', sub: 'Molo Beverello 출발', place: 'na-beverello' }),
+  B('b-ferry-capri', 'ferry', '2026-10-24', '나폴리 → 카프리 페리 (현지 예약)', {
+    time: '', sub: '아직 예약 안 함 · 당일 날씨 보고 Ferryhopper에서 예약', place: 'na-beverello',
+    link: 'https://www.ferryhopper.com/booking/results?itinerary=NAP00,PRJ&dates=20261024',
+  }),
   B('b-ferry-np', 'ferry', '2026-10-26', '나폴리 → 포지타노 페리', { time: '', sub: 'Molo Beverello', place: 'na-beverello' }),
   B('b-stay-positano', 'stay', '2026-10-26', 'Le Sirenuse · 포지타노', { endDate: '2026-10-27', place: 'po-hotel' }),
   B('b-train-nf', 'train', '2026-10-27', '나폴리 → 피렌체 기차', { time: '15:25', sub: '15:25 – 18:31 · Napoli Centrale · 79.8€', place: 'na-centrale' }),
