@@ -4,7 +4,7 @@ import { patch, useDoc } from './store.js';
 // 앱에 같이 넣어 둔 기본 메모. 앱에서 고치거나 지우면 공유 DB 값이 우선이에요.
 const SEED = {
   d1: {
-    text: '공항(FCO) → 테르미니역 가는 법\nhttps://aistudio.multicampus.com/das?courseId=cmt9odmru013v01rvaa3qf34e&t=1792367898134',
+    text: '공항(FCO) → 테르미니역 가는 법\nhttps://blog.naver.com/yujinbae_1009/224376153275',
     by: null,
     at: Date.parse('2026-10-19T00:00:00+09:00'),
   },
