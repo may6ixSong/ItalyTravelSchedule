@@ -1,9 +1,11 @@
-// 준비 체크리스트: 그룹 4개 고정, 항목은 두 사람 모두 추가 · 수정 · 삭제. 항목을 누르면 슬라이드가 열리고 링크가 있으면 바로 열 수 있어요.
+// 준비 체크리스트: 그룹 4개 고정. 숙소 · 이동 · 식당은 두 사람이 같이 쓰는 공유 목록,
+// 여행 준비물은 사람마다 따로(목록 · 체크 모두 이 폰에만 저장, lib/packList.js). 항목을 누르면 슬라이드가 열리고 링크가 있으면 바로 열 수 있어요.
 import { useEffect, useState } from 'react';
 import { CHECK_GROUPS, checklistSeed } from '../data/checklistSeed.js';
 import { dayLabel, todayIso } from '../data/itinerary.js';
 import { TRIP } from '../config.js';
-import { add, getOne, patch, put, remove, useCollection } from '../lib/store.js';
+import { add, getOne, patch, put, remove, useCollection, useDoc } from '../lib/store.js';
+import { usePackList } from '../lib/packList.js';
 import { useMe } from '../lib/user.js';
 import { useUsers } from '../components/PlaceDetail.jsx';
 import { Avatar, Icon, Modal, ModalHead } from '../components/ui.jsx';
@@ -28,14 +30,18 @@ async function seedOnce() {
 
 export default function Checklist() {
   const all = useCollection('checklist');
-  // 쇼핑 목록(group 'buy')은 같은 컬렉션에 있지만 여기서는 빼요
-  const rows = all && all.filter((r) => r.group !== 'buy');
+  const meta = useDoc('settings', 'meta');
+  const me = useMe();
+  const pack = usePackList(me, all, meta);
+  // 쇼핑 목록(group 'buy')은 같은 컬렉션에 있지만 여기서는 빼요. 준비물(pack)은 내 폰 목록을 써요.
+  const shared = all && all.filter((r) => r.group !== 'buy' && r.group !== 'pack');
+  const rows = shared && pack.items && [...shared, ...pack.items.map((i) => ({ ...i, group: 'pack', personal: true }))];
   const users = useUsers();
   const [openGroup, setOpenGroup] = useState('pack');
   const [item, setItem] = useState(null);
   useEffect(() => {
-    if (rows && rows.length === 0) seedOnce();
-  }, [rows]);
+    if (all && all.length === 0) seedOnce();
+  }, [all]);
   if (!rows) return <div className="empty">불러오는 중…</div>;
 
   const done = rows.filter((r) => r.done).length;
@@ -65,28 +71,30 @@ export default function Checklist() {
               <span className="theme-ic" style={{ background: bg, color: fg }}><Icon name={GROUP_ICON[g.id]} size={18} /></span>
               <span className="grow">
                 <span style={{ display: 'block', fontWeight: 700 }}>{g.label}</span>
-                <span className="tiny muted">{list.length ? `${list.length}개 중 ${gd}개` : '아직 없음'}{g.id === 'pack' && list.some((r) => r.recommended) ? ' · 추천 포함' : ''}</span>
+                <span className="tiny muted">{list.length ? `${list.length}개 중 ${gd}개` : '아직 없음'}{g.id === 'pack' ? ' · 나만 보는 목록' : ''}</span>
               </span>
               {list.length > 0 && <span className="progress" style={{ width: 60 }}><i style={{ width: `${(gd / list.length) * 100}%` }} /></span>}
               <Icon name={isOpen ? 'up' : 'down'} size={18} style={{ color: 'var(--muted)' }} />
             </button>
             {isOpen && (
               <div className="list" style={{ borderTop: '1px solid var(--line-2)' }}>
-                {list.map((r) => <Row key={r.id} r={r} user={users[r.doneBy]} onOpen={() => setItem(r)} />)}
-                <AddRow group={g.id} />
+                {list.map((r) => <Row key={r.id} r={r} user={r.personal ? null : users[r.doneBy]} onToggle={() => (r.personal ? pack.ops.toggle(r.id) : toggleShared(r, me))} onOpen={() => setItem(r)} />)}
+                <AddRow group={g.id} onAdd={g.id === 'pack' ? pack.ops.add : null} />
               </div>
             )}
           </section>
         );
       })}
-      {item && <ItemSheet item={rows.find((r) => r.id === item.id) || item} onClose={() => setItem(null)} />}
+      {item && <ItemSheet item={rows.find((r) => r.id === item.id) || item} ops={item.personal ? pack.ops : SHARED_OPS} onClose={() => setItem(null)} />}
     </div>
   );
 }
 
-function Row({ r, user, onOpen }) {
-  const me = useMe();
-  const toggle = () => patch('checklist', r.id, r.done ? { done: false, doneBy: '', doneAt: 0 } : { done: true, doneBy: me.uid, doneAt: Date.now() });
+const toggleShared = (r, me) => patch('checklist', r.id, r.done ? { done: false, doneBy: '', doneAt: 0 } : { done: true, doneBy: me.uid, doneAt: Date.now() });
+const SHARED_OPS = { update: (id, data) => patch('checklist', id, data), remove: (id) => remove('checklist', id) };
+
+function Row({ r, user, onToggle, onOpen }) {
+  const toggle = onToggle;
   return (
     <div className="item" style={{ padding: '6px 12px', minHeight: 48 }}>
       <button className={`check ${r.done ? 'on' : ''}`} onClick={toggle} aria-label={r.done ? '체크 해제' : '체크'} aria-pressed={r.done}>
@@ -104,12 +112,13 @@ function Row({ r, user, onOpen }) {
   );
 }
 
-function AddRow({ group }) {
+function AddRow({ group, onAdd }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const save = () => {
     if (!title.trim()) return;
-    add('checklist', { group, title: title.trim(), date, done: false, link: '', memo: '', order: Date.now() });
+    if (onAdd) onAdd(title.trim());
+    else add('checklist', { group, title: title.trim(), date, done: false, link: '', memo: '', order: Date.now() });
     setTitle('');
     setDate('');
   };
@@ -122,7 +131,7 @@ function AddRow({ group }) {
   );
 }
 
-function ItemSheet({ item, onClose }) {
+function ItemSheet({ item, ops, onClose }) {
   const me = useMe();
   const users = useUsers();
   const [title, setTitle] = useState(item.title);
@@ -135,7 +144,7 @@ function ItemSheet({ item, onClose }) {
   const dirty = title !== item.title || date !== (item.date || '') || memo !== (item.memo || '') || link !== (item.link || '') || kind !== (item.linkKind || 'web');
   const save = () => {
     const url = link.trim() && !/^[a-z][\w+.-]*:/i.test(link.trim()) ? `https://${link.trim()}` : link.trim();
-    patch('checklist', item.id, { title: title.trim() || item.title, date, memo, link: url, linkKind: kind });
+    ops.update(item.id, item.personal ? { title: title.trim() || item.title, memo, link: url, linkKind: kind } : { title: title.trim() || item.title, date, memo, link: url, linkKind: kind });
     setLink(url);
     setEditing(false);
   };
@@ -151,13 +160,13 @@ function ItemSheet({ item, onClose }) {
       {editing && (
         <div className="row" style={{ flexWrap: 'wrap' }}>
           <input className="input" style={{ flex: '1 1 180px' }} value={title} onChange={(e) => setTitle(e.target.value)} aria-label="이름" />
-          <input className="input" type="date" style={{ flex: '0 1 160px' }} value={date} onChange={(e) => setDate(e.target.value)} aria-label="날짜" />
+          {!item.personal && <input className="input" type="date" style={{ flex: '0 1 160px' }} value={date} onChange={(e) => setDate(e.target.value)} aria-label="날짜" />}
         </div>
       )}
-      <button className="card item" onClick={() => patch('checklist', item.id, item.done ? { done: false, doneBy: '', doneAt: 0 } : { done: true, doneBy: me.uid, doneAt: Date.now() })}>
+      <button className="card item" onClick={() => (item.personal ? ops.toggle(item.id) : toggleShared(item, me))}>
         <span className={`check ${item.done ? 'on' : ''}`}>{item.done && <Icon name="check" size={15} stroke={3} />}</span>
         <span className="grow bold">준비 완료</span>
-        {item.done && users[item.doneBy] && <span className="small muted row" style={{ gap: 6 }}><Avatar user={users[item.doneBy]} size={20} />{users[item.doneBy].name}</span>}
+        {item.done && !item.personal && users[item.doneBy] && <span className="small muted row" style={{ gap: 6 }}><Avatar user={users[item.doneBy]} size={20} />{users[item.doneBy].name}</span>}
       </button>
 
       <div className="field">
@@ -183,8 +192,8 @@ function ItemSheet({ item, onClose }) {
         <textarea className="input" rows={3} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="예약번호, 좌석, 출발역 등" />
       </label>
       <div className="row">
-        <span className="grow tiny muted">수정 내용은 동행 폰에도 보여요</span>
-        <button className="btn small" style={{ color: 'var(--danger)' }} onClick={() => { if (confirm('이 항목을 지울까요?')) { remove('checklist', item.id); onClose(); } }}>
+        <span className="grow tiny muted">{item.personal ? '내 폰에만 저장돼요 (동행 폰에는 안 보여요)' : '수정 내용은 동행 폰에도 보여요'}</span>
+        <button className="btn small" style={{ color: 'var(--danger)' }} onClick={() => { if (confirm('이 항목을 지울까요?')) { ops.remove(item.id); onClose(); } }}>
           <Icon name="trash" size={14} />삭제
         </button>
         {dirty && <button className="btn small primary" onClick={save}>저장</button>}
