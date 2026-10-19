@@ -444,7 +444,7 @@ export default function MapScreen({ go, openBooking }) {
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
             ) : (
-              <DayList day={day} dayNote={dayNotes[day.id]} notes={notes} variants={variants} variant={variant} onVariant={(id) => chooseVariant(day.id, id)}
+              <DayList wide={wide} day={day} dayNote={dayNotes[day.id]} notes={notes} variants={variants} variant={variant} onVariant={(id) => chooseVariant(day.id, id)}
                 onNewVariant={() => setEditor({ base: variant })} onEditVariant={() => setEditor({ editing: variant })} stops={stops} onPick={(p) => { setSelected(p.id); setSnap('half'); setFocus({ ...p, key: Date.now() }); }} />
             )}
           </>
@@ -527,11 +527,11 @@ function NoteLine({ text }) {
   );
 }
 
-function DayList({ day, dayNote, stops, onPick, notes, variants, variant, onVariant, onNewVariant, onEditVariant }) {
+function DayList({ wide, day, dayNote, stops, onPick, notes, variants, variant, onVariant, onNewVariant, onEditVariant }) {
   const placed = stops.filter((s) => s.place && !s.repeat).length;
   return (
     <>
-      <DayNote key={day.id} day={day} note={dayNote} />
+      {wide && <DayNote key={day.id} day={day} note={dayNote} />}
       <div className="chips" role="tablist" aria-label="그날 일정 고르기" style={{ marginBottom: 10 }}>
         {variants.map((v) => (
           <button key={v.id} role="tab" aria-selected={v.id === variant.id} className={`chip ${v.id === variant.id ? 'solid' : ''}`} onClick={() => onVariant(v.id)}>
@@ -560,6 +560,8 @@ function DayList({ day, dayNote, stops, onPick, notes, variants, variant, onVari
           </span>
         </button>
       ))}
+      {/* 접은 폰: 일정이 가려지지 않게 메모는 일정표 아래에 */}
+      {!wide && <div className="day-note-below"><DayNote key={day.id} day={day} note={dayNote} /></div>}
     </>
   );
 }
@@ -570,7 +572,6 @@ function DayNote({ day, note }) {
   const users = useUsers();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState('');
-  const [open, setOpen] = useState(false);
   const l = dayLabel(day.date);
   const start = () => {
     setText(note?.text || '');
@@ -584,7 +585,7 @@ function DayNote({ day, note }) {
     return (
       <div className="note-box day-note" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <b className="small">{l.md} 메모 · 두 사람이 같이 봐요</b>
-        <textarea className="input" rows={Math.min(10, Math.max(4, text.split('\n').length * 2))} autoFocus value={text} onChange={(e) => setText(e.target.value)}
+        <textarea className="input" rows={Math.min(14, Math.max(7, text.split('\n').length * 2 + 1))} autoFocus value={text} onChange={(e) => setText(e.target.value)}
           placeholder="예: 체크아웃 11시 · 짐 맡기고 출발 · 저녁은 예약 없이 가보기" aria-label="날짜 메모" />
         <div className="row">
           {note && <button className="btn small ghost" style={{ color: 'var(--danger)' }} onClick={() => { saveDayNote(day.id, '', me.uid); setEditing(false); }}>메모 지우기</button>}
@@ -597,19 +598,20 @@ function DayNote({ day, note }) {
   }
   if (!note) {
     return (
-      <button className="btn small ghost day-note-add" onClick={start}>
-        <Icon name="edit" size={14} />{l.md} 메모 쓰기
+      <button className="note-box day-note day-note-add" onClick={start}>
+        <span className="row small bold" style={{ gap: 6 }}><Icon name="edit" size={14} />{l.md} 메모</span>
+        <span className="muted" style={{ fontSize: '0.92rem' }}>이 날 챙길 것 · 예약 시간 · 할 일을 적어 두세요</span>
       </button>
     );
   }
   const who = users[note.by];
   return (
-    <div className={`note-box day-note${open ? ' open' : ''}`}>
+    <div className="note-box day-note">
       <span className="row small bold" style={{ gap: 6 }}>
         <span className="note-dot" aria-hidden="true" />{l.md} 메모<span className="grow" />
         <button className="icon-btn day-note-edit" onClick={start} aria-label="날짜 메모 고치기"><Icon name="edit" size={14} /></button>
       </span>
-      <button className="day-note-text" onClick={() => setOpen(!open)} aria-expanded={open}>{note.text}</button>
+      <button className="day-note-text" onClick={start} aria-label="날짜 메모 고치기">{note.text}</button>
       <span className="tiny muted">{who?.name || ''} · {new Date(note.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
     </div>
   );
