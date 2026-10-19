@@ -56,13 +56,16 @@ export async function addPhotos(date, files, onProgress) {
   return failed;
 }
 
-export async function deletePhoto(id) {
-  await run('readwrite', (s) => s.delete(id));
-  const u = urls.get(id);
-  if (u) URL.revokeObjectURL(u);
-  urls.delete(id);
+export async function deletePhotos(ids) {
+  await run('readwrite', (s) => ids.forEach((id) => s.delete(id)));
+  for (const id of ids) {
+    const u = urls.get(id);
+    if (u) URL.revokeObjectURL(u);
+    urls.delete(id);
+  }
   bus.dispatchEvent(new Event('change'));
 }
+export const deletePhoto = (id) => deletePhotos([id]);
 
 export async function movePhoto(photo, date) {
   await run('readwrite', (s) => s.put({ ...photo, date }));

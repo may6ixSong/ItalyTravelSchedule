@@ -2,7 +2,7 @@
 // 사진은 이 폰에만 저장돼서 비행기 안(오프라인)에서도 전체 여행 슬라이드쇼를 볼 수 있어요.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAYS, dayLabel, todayIso } from '../data/itinerary.js';
-import { addPhotos, deletePhoto, movePhoto, photoUrl, useAlbumPhotos } from '../lib/album.js';
+import { addPhotos, deletePhoto, deletePhotos, movePhoto, photoUrl, useAlbumPhotos } from '../lib/album.js';
 import { buildPages, randomSeed, shuffle } from '../lib/albumLayout.js';
 import { Icon } from '../components/ui.jsx';
 
@@ -94,6 +94,7 @@ export default function AlbumScreen() {
   const [seeds, setSeeds] = useState({});
   const [busy, setBusy] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const [listOpen, setListOpen] = useState(false);
   const [show, setShow] = useState(false);
   const [usage, setUsage] = useState(null);
   const fileRef = useRef(null);
@@ -156,6 +157,7 @@ export default function AlbumScreen() {
         <div className="row album-dayhead">
           <b>{info.n} · {info.long}</b>
           <span className="muted small grow">{day.title}{list.length ? ` · 사진 ${list.length}장` : ''}</span>
+          {list.length > 0 && <button className="btn small" onClick={() => setListOpen(true)}><Icon name="list" size={16} />사진 목록</button>}
         </div>
 
         {busy && (
@@ -195,8 +197,50 @@ export default function AlbumScreen() {
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={upload} />
       </div>
 
+      {listOpen && <PhotoList title={`${info.n} · ${info.long}`} photos={list} onClose={() => setListOpen(false)} />}
       {viewing && <PhotoViewer photo={viewing} onClose={() => setViewing(null)} />}
       {show && <Slideshow photos={photos} onClose={() => setShow(false)} />}
+    </div>
+  );
+}
+
+// 그날 올린 사진 목록: 여러 장 골라서 한 번에 지우기
+function PhotoList({ title, photos, onClose }) {
+  const [sel, setSel] = useState(() => new Set());
+  const toggle = (id) => setSel((s) => {
+    const n = new Set(s);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const all = sel.size === photos.length;
+  const remove = async () => {
+    if (!confirm(`사진 ${sel.size}장을 앨범에서 지울까요?\n(폰 갤러리의 원본은 그대로 남아요)`)) return;
+    await deletePhotos([...sel]);
+    if (sel.size === photos.length) onClose();
+    setSel(new Set());
+  };
+  return (
+    <div className="modal-back" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="grab" />
+        <div className="row">
+          <b className="grow">{title} · 사진 {photos.length}장</b>
+          <button className="icon-btn" onClick={onClose} aria-label="닫기"><Icon name="x" size={20} /></button>
+        </div>
+        <div className="row">
+          <button className="btn small" onClick={() => setSel(all ? new Set() : new Set(photos.map((p) => p.id)))}>{all ? '선택 해제' : '전체 선택'}</button>
+          <span className="muted small grow">{sel.size ? `${sel.size}장 선택됨` : '지울 사진을 눌러 고르세요'}</span>
+          <button className="btn small alert" disabled={!sel.size} onClick={remove}><Icon name="trash" size={16} />삭제</button>
+        </div>
+        <div className="plist">
+          {photos.map((p) => (
+            <button key={p.id} type="button" className={`plist-item ${sel.has(p.id) ? 'on' : ''}`} onClick={() => toggle(p.id)} aria-pressed={sel.has(p.id)}>
+              <img src={photoUrl(p)} alt="" decoding="async" />
+              <span className="check">{sel.has(p.id) && <Icon name="check" size={16} stroke={3} />}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

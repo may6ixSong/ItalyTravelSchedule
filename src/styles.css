@@ -451,3 +451,12 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
   .ss-stage { padding: 8px; }
   .ss-slide { width: calc((100dvh - 16px) * 0.75); }
 }
+
+/* 그날 사진 목록 */
+.plist { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.plist-item { position: relative; aspect-ratio: 1; padding: 0; border: 0; border-radius: 6px; overflow: hidden; background: var(--surface-2); }
+.plist-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.12s; }
+.plist-item .check { position: absolute; top: 6px; right: 6px; background: rgba(255, 255, 255, 0.85); }
+.plist-item.on img { transform: scale(0.88); border-radius: 6px; }
+.plist-item.on { background: var(--alert-bg); }
+.plist-item.on .check { background: var(--alert); border-color: var(--alert); }
