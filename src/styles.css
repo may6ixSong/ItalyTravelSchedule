@@ -372,3 +372,13 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .wx-wave { position: absolute; left: -20px; width: calc(100% + 40px); height: 22px; opacity: 0; animation: wx-rise 3s ease-in infinite; }
 .wx-wave path { fill: none; stroke: rgba(255, 150, 70, 0.4); stroke-width: 2; stroke-linecap: round; }
 @keyframes wx-rise { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-200px); opacity: 0; } }
+/* 날짜 메모 */
+.day-note { width: 100%; margin-bottom: 12px; text-align: left; display: flex; flex-direction: column; gap: 6px; }
+.day-note-add { width: 100%; justify-content: flex-start; border: 1.5px dashed var(--line); margin-bottom: 10px; color: var(--muted); }
+.chip-note { width: 7px; height: 7px; margin: 0 0 0 2px; }
+.day-note-edit { width: 28px; height: 28px; background: transparent; margin: -4px -4px -4px 0; color: var(--ink-2); }
+.day-note-text { border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; white-space: pre-wrap; line-height: 1.55; font-size: 0.92rem; }
+/* 접은 폰(좁은 화면): 지도 아래 일정이 가려지지 않게 두 줄만, 누르면 펼쳐요 */
+@media (max-width: 759px) {
+  .day-note:not(.open) .day-note-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}

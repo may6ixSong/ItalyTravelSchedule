@@ -32,6 +32,8 @@ import { directionsUrl, distanceKm, formatKm, walkMinutes } from '../lib/geo.js'
 import { getPref, patch, setPref, useDoc } from '../lib/store.js';
 import { useMe } from '../lib/user.js';
 import { useNotes } from '../lib/notes.js';
+import { saveDayNote, useDayNotes } from '../lib/dayNotes.js';
+import { useUsers } from '../components/PlaceDetail.jsx';
 import { chooseVariant, usePlaceDays, useVariants } from '../lib/variants.js';
 import VariantEditor from '../components/VariantEditor.jsx';
 import WeatherFx, { WeatherCard, useWeatherPlay } from '../components/WeatherFx.jsx';
@@ -54,6 +56,7 @@ export default function MapScreen({ go, openBooking }) {
   const me = useMe();
   const { byId, places } = usePlaces();
   const notes = useNotes();
+  const dayNotes = useDayNotes();
   const today = todayIso();
   // 앱을 열면: 여행 중이면 오늘 날짜, 여행 전 · 후에는 첫째 날
   const [dayId, setDayId] = useState(() => DAYS.find((d) => d.date === today)?.id || DAYS[0].id);
@@ -377,6 +380,7 @@ export default function MapScreen({ go, openBooking }) {
                 return (
                   <button key={d.id} className={`chip day-chip ${on ? 'solid' : ''}`} style={{ '--c': CITIES[d.city].color }} onClick={() => setDayId(d.id)}>
                     <span className="dot-c" />{l.dd} {l.wd}{d.date === today && <b> · 오늘</b>}
+                    {dayNotes[d.id] && <span className="note-dot chip-note" aria-label="메모 있음" />}
                     {weather[d.date] && <><span className="wx-ico" aria-label={WEATHER_KINDS[weather[d.date].kind].label}>{WEATHER_KINDS[weather[d.date].kind].icon}</span><span className="wx-t">{weather[d.date].tmax}°</span></>}
                   </button>
                 );
@@ -440,7 +444,7 @@ export default function MapScreen({ go, openBooking }) {
             ) : dayId === 'all' ? (
               <TripList byId={byId} onDay={setDayId} />
             ) : (
-              <DayList notes={notes} variants={variants} variant={variant} onVariant={(id) => chooseVariant(day.id, id)}
+              <DayList day={day} dayNote={dayNotes[day.id]} notes={notes} variants={variants} variant={variant} onVariant={(id) => chooseVariant(day.id, id)}
                 onNewVariant={() => setEditor({ base: variant })} onEditVariant={() => setEditor({ editing: variant })} stops={stops} onPick={(p) => { setSelected(p.id); setSnap('half'); setFocus({ ...p, key: Date.now() }); }} />
             )}
           </>
@@ -523,10 +527,11 @@ function NoteLine({ text }) {
   );
 }
 
-function DayList({ stops, onPick, notes, variants, variant, onVariant, onNewVariant, onEditVariant }) {
+function DayList({ day, dayNote, stops, onPick, notes, variants, variant, onVariant, onNewVariant, onEditVariant }) {
   const placed = stops.filter((s) => s.place && !s.repeat).length;
   return (
     <>
+      <DayNote key={day.id} day={day} note={dayNote} />
       <div className="chips" role="tablist" aria-label="그날 일정 고르기" style={{ marginBottom: 10 }}>
         {variants.map((v) => (
           <button key={v.id} role="tab" aria-selected={v.id === variant.id} className={`chip ${v.id === variant.id ? 'solid' : ''}`} onClick={() => onVariant(v.id)}>
@@ -556,6 +561,57 @@ function DayList({ stops, onPick, notes, variants, variant, onVariant, onNewVari
         </button>
       ))}
     </>
+  );
+}
+
+// 그날 메모: 일정(A안 · B안)과 상관없이 날짜마다 하나. 두 사람이 같이 봐요
+function DayNote({ day, note }) {
+  const me = useMe();
+  const users = useUsers();
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState('');
+  const [open, setOpen] = useState(false);
+  const l = dayLabel(day.date);
+  const start = () => {
+    setText(note?.text || '');
+    setEditing(true);
+  };
+  const save = () => {
+    saveDayNote(day.id, text, me.uid);
+    setEditing(false);
+  };
+  if (editing) {
+    return (
+      <div className="note-box day-note" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <b className="small">{l.md} 메모 · 두 사람이 같이 봐요</b>
+        <textarea className="input" rows={Math.min(10, Math.max(4, text.split('\n').length * 2))} autoFocus value={text} onChange={(e) => setText(e.target.value)}
+          placeholder="예: 체크아웃 11시 · 짐 맡기고 출발 · 저녁은 예약 없이 가보기" aria-label="날짜 메모" />
+        <div className="row">
+          {note && <button className="btn small ghost" style={{ color: 'var(--danger)' }} onClick={() => { saveDayNote(day.id, '', me.uid); setEditing(false); }}>메모 지우기</button>}
+          <span className="grow" />
+          <button className="btn small" onClick={() => setEditing(false)}>취소</button>
+          <button className="btn small primary" onClick={save} disabled={!text.trim()}>저장</button>
+        </div>
+      </div>
+    );
+  }
+  if (!note) {
+    return (
+      <button className="btn small ghost day-note-add" onClick={start}>
+        <Icon name="edit" size={14} />{l.md} 메모 쓰기
+      </button>
+    );
+  }
+  const who = users[note.by];
+  return (
+    <div className={`note-box day-note${open ? ' open' : ''}`}>
+      <span className="row small bold" style={{ gap: 6 }}>
+        <span className="note-dot" aria-hidden="true" />{l.md} 메모<span className="grow" />
+        <button className="icon-btn day-note-edit" onClick={start} aria-label="날짜 메모 고치기"><Icon name="edit" size={14} /></button>
+      </span>
+      <button className="day-note-text" onClick={() => setOpen(!open)} aria-expanded={open}>{note.text}</button>
+      <span className="tiny muted">{who?.name || ''} · {new Date(note.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+    </div>
   );
 }
 
