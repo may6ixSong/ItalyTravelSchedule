@@ -3,6 +3,7 @@ import MapScreen from './screens/MapScreen.jsx';
 import BookingsScreen from './screens/BookingsScreen.jsx';
 import ExpensesScreen from './screens/ExpensesScreen.jsx';
 import PhrasesScreen from './screens/PhrasesScreen.jsx';
+import AlbumScreen from './screens/AlbumScreen.jsx';
 import MeScreen from './screens/MeScreen.jsx';
 import Onboarding from './screens/Onboarding.jsx';
 import { Icon } from './components/ui.jsx';
@@ -17,6 +18,7 @@ import { fetchWeatherOnLaunch } from './lib/weather.js';
 const TABS = [
   ['map', '지도', 'map'],
   ['book', '예약', 'ticket'],
+  ['album', '앨범', 'photo'],
   ['money', '가계부', 'wallet'],
   ['talk', '회화', 'chat'],
   ['me', '나', 'user'],
@@ -77,6 +79,7 @@ export default function App() {
           {tab === 'book' && (
             <BookingsScreen tab={['check', 'buy'].includes(sub) ? sub : 'list'} setTab={(t) => go('book', t === 'list' ? '' : t)} openId={openBooking} clearOpen={() => setOpenBooking(null)} />
           )}
+          {tab === 'album' && <AlbumScreen />}
           {tab === 'money' && <ExpensesScreen />}
           {tab === 'talk' && <PhrasesScreen />}
           {tab === 'me' && <MeScreen setMe={setMe} />}
