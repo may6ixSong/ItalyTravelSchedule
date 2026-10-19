@@ -460,3 +460,7 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .plist-item.on img { transform: scale(0.88); border-radius: 6px; }
 .plist-item.on { background: var(--alert-bg); }
 .plist-item.on .check { background: var(--alert); border-color: var(--alert); }
+
+/* 체크리스트 항목 바로 지우기 */
+.row-del { width: 36px; height: 36px; margin-right: -6px; border: 0; border-radius: 10px; background: none; color: #a39b8d; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.row-del:active { background: var(--alert-bg); color: var(--danger); }

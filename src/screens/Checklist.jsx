@@ -78,7 +78,7 @@ export default function Checklist() {
             </button>
             {isOpen && (
               <div className="list" style={{ borderTop: '1px solid var(--line-2)' }}>
-                {list.map((r) => <Row key={r.id} r={r} user={r.personal ? null : users[r.doneBy]} onToggle={() => (r.personal ? pack.ops.toggle(r.id) : toggleShared(r, me))} onOpen={() => setItem(r)} />)}
+                {list.map((r) => <Row key={r.id} r={r} user={r.personal ? null : users[r.doneBy]} onToggle={() => (r.personal ? pack.ops.toggle(r.id) : toggleShared(r, me))} onOpen={() => setItem(r)} onRemove={() => (r.personal ? pack.ops : SHARED_OPS).remove(r.id)} />)}
                 <AddRow group={g.id} onAdd={g.id === 'pack' ? pack.ops.add : null} />
               </div>
             )}
@@ -93,8 +93,9 @@ export default function Checklist() {
 const toggleShared = (r, me) => patch('checklist', r.id, r.done ? { done: false, doneBy: '', doneAt: 0 } : { done: true, doneBy: me.uid, doneAt: Date.now() });
 const SHARED_OPS = { update: (id, data) => patch('checklist', id, data), remove: (id) => remove('checklist', id) };
 
-function Row({ r, user, onToggle, onOpen }) {
+function Row({ r, user, onToggle, onOpen, onRemove }) {
   const toggle = onToggle;
+  const del = () => confirm(`'${r.title}' 항목을 지울까요?${r.personal ? '' : '\n(동행 폰에서도 지워져요)'}`) && onRemove();
   return (
     <div className="item" style={{ padding: '6px 12px', minHeight: 48 }}>
       <button className={`check ${r.done ? 'on' : ''}`} onClick={toggle} aria-label={r.done ? '체크 해제' : '체크'} aria-pressed={r.done}>
@@ -108,6 +109,7 @@ function Row({ r, user, onToggle, onOpen }) {
         {r.link && <Icon name="link" size={15} style={{ color: 'var(--accent)' }} />}
         {r.done && user && <Avatar user={user} size={20} />}
       </button>
+      <button className="row-del" onClick={del} aria-label={`${r.title} 지우기`}><Icon name="trash" size={16} /></button>
     </div>
   );
 }
