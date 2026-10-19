@@ -380,3 +380,4 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .chip-note { width: 7px; height: 7px; margin: 0 0 0 2px; }
 .day-note-edit { width: 32px; height: 32px; background: transparent; margin: -6px -6px -6px 0; color: var(--ink-2); }
 .day-note-text { border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; white-space: pre-wrap; line-height: 1.6; font-size: 0.98rem; }
+.note-link { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-weight: 600; text-decoration: underline; word-break: break-all; }

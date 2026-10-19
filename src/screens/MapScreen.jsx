@@ -611,10 +611,24 @@ function DayNote({ day, note }) {
         <span className="note-dot" aria-hidden="true" />{l.md} 메모<span className="grow" />
         <button className="icon-btn day-note-edit" onClick={start} aria-label="날짜 메모 고치기"><Icon name="edit" size={14} /></button>
       </span>
-      <button className="day-note-text" onClick={start} aria-label="날짜 메모 고치기">{note.text}</button>
-      <span className="tiny muted">{who?.name || ''} · {new Date(note.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+      <div className="day-note-text" role="button" tabIndex={0} onClick={start} onKeyDown={(e) => e.key === 'Enter' && start()} aria-label="날짜 메모 고치기"><Linkify text={note.text} /></div>
+      <span className="tiny muted">{note.by ? `${who?.name || ''} · ${new Date(note.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : '기본 메모 · 눌러서 고칠 수 있어요'}</span>
     </div>
   );
+}
+
+// 메모 속 주소(https://…)는 눌러서 열 수 있게. 긴 주소는 사이트 이름만 보여줘요
+function Linkify({ text }) {
+  return text.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
+    if (i % 2 === 0) return part;
+    let host = part;
+    try { host = new URL(part).hostname.replace(/^www\./, ''); } catch { /* 그대로 */ }
+    return (
+      <a key={i} className="note-link" href={part} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+        <Icon name="link" size={13} />{host}
+      </a>
+    );
+  });
 }
 
 function TripList({ byId, onDay }) {
