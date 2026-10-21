@@ -30,6 +30,39 @@ function readHash() {
   return { tab: TABS.some((t) => t[0] === tab) ? tab : 'map', sub };
 }
 
+const COL_LABEL = { expenses: '가계부', checklist: '체크리스트', records: '기록', photos: '사진', settings: '설정', users: '프로필' };
+function writeErrorText({ col, code }) {
+  const what = COL_LABEL[col] || col;
+  if (code === 'permission-denied') return `${what} 저장이 거절됐어요(권한). 이 폰을 다시 연결했으니 한 번 더 해 보세요. 계속되면 앱을 완전히 껐다 켜 주세요.`;
+  if (code === 'resource-exhausted') return `${what} 저장 실패: 오늘 Firebase 무료 사용량을 넘었어요. 이탈리아 오전 8~9시(한국 오후 4시)쯤 다시 풀려요.`;
+  return `${what}에 저장하지 못했어요 (${code}). 잠시 뒤 다시 해 보세요.`;
+}
+
+// 공유 DB 저장이 서버에서 거절되면 화면 위에 이유를 잠깐 보여줘요 (lib/store.js)
+function WriteErrorToast() {
+  const [err, setErr] = useState(null);
+  useEffect(() => {
+    let t;
+    const on = (e) => {
+      setErr(e.detail);
+      clearTimeout(t);
+      t = setTimeout(() => setErr(null), 10000);
+    };
+    window.addEventListener('itp-write-error', on);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('itp-write-error', on);
+    };
+  }, []);
+  if (!err) return null;
+  return (
+    <div className="write-toast" role="alert" onClick={() => setErr(null)}>
+      <Icon name="cloud" size={18} />
+      <span>{writeErrorText(err)}</span>
+    </div>
+  );
+}
+
 export default function App() {
   const [me, setMe] = useState(loadMe);
   const [{ tab, sub }, setRoute] = useState(readHash);
@@ -72,6 +105,7 @@ export default function App() {
   return (
     <MeContext.Provider value={me}>
       <div className="app">
+        <WriteErrorToast />
         <main className="screen">
           <div hidden={tab !== 'map'} style={{ position: 'absolute', inset: 0 }}>
             <MapScreen go={go} openBooking={(b) => { setOpenBooking(b.id); go('book'); }} />

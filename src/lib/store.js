@@ -1,7 +1,7 @@
 // 공유 데이터 저장소. Firebase 설정이 있으면 Firestore(오프라인 캐시 + 실시간 동기화),
 // 없으면 이 기기의 localStorage를 씁니다. 화면 코드는 어느 쪽인지 몰라도 됩니다.
 import { useEffect, useState } from 'react';
-import { firebaseConfig, hasFirebase } from '../config.js';
+import { JOIN_CODE, firebaseConfig, hasFirebase } from '../config.js';
 
 let fb = null; // { db, auth, mod } — Firestore 모듈은 필요할 때만 불러옵니다.
 
@@ -111,6 +111,7 @@ function liveQuery(col, name, makeQuery, cb) {
       (err) => {
         console.warn('subscribe', name, err.code);
         off();
+        if (err.code === 'permission-denied') repairMembership();
         if (!cancelled) timer = setTimeout(start, Math.min(30000, 2000 * 2 ** attempt++));
       },
     );
@@ -121,6 +122,54 @@ function liveQuery(col, name, makeQuery, cb) {
     clearTimeout(timer);
     off();
   };
+}
+
+/* ---------- 저장 실패 처리 ----------
+   Firestore 쓰기는 서버가 거절하면(권한 · 무료 사용량 초과 등) 화면에서 조용히 되돌아가요.
+   그래서 실패하면 화면에 이유를 알리고(App의 토스트), 권한 문제면 이 폰의 멤버 등록을 다시 해서 한 번 더 시도해요. */
+let repairing = null;
+// 이 폰의 로그인(익명 uid)으로 users 문서를 다시 만들어요. 입장 코드는 이미 통과했으니 다시 묻지 않아요.
+export function repairMembership() {
+  repairing ||= (async () => {
+    const me = getPref('me', null);
+    if (!me || me.dev) return false;
+    const uid = await ensureAuth();
+    const { db, fs } = await firebase();
+    await fs.setDoc(fs.doc(db, 'users', uid), { name: me.name, color: me.color, photo: me.photo || '', joinCode: JOIN_CODE, updatedAt: Date.now() }, { merge: true });
+    if (uid !== me.uid) setPref('me', { ...me, uid });
+    return true;
+  })()
+    .catch((e) => {
+      console.warn('repair', e?.code || e);
+      return false;
+    })
+    .finally(() => setTimeout(() => (repairing = null), 30000));
+  return repairing;
+}
+
+function reportWriteError(col, e) {
+  const code = e?.code || e?.message || 'unknown';
+  console.warn('write', col, code);
+  window.dispatchEvent(new CustomEvent('itp-write-error', { detail: { col, code } }));
+}
+
+// 서버 응답을 기다리지 않고(오프라인이면 대기열에 쌓여요) 결과만 따로 확인
+function write(col, run) {
+  (async () => {
+    try {
+      await run();
+    } catch (e) {
+      if (e?.code === 'permission-denied' && col !== 'users' && (await repairMembership())) {
+        try {
+          await run();
+          return;
+        } catch (e2) {
+          return reportWriteError(col, e2);
+        }
+      }
+      reportWriteError(col, e);
+    }
+  })();
 }
 
 /* ---------- 공통 API ---------- */
@@ -167,7 +216,7 @@ export async function put(col, id, data) {
     return;
   }
   const { db, fs } = await firebase();
-  fs.setDoc(fs.doc(db, col, id), doc).catch((e) => console.warn('put', col, e.code));
+  write(col, () => fs.setDoc(fs.doc(db, col, id), doc));
 }
 
 export async function patch(col, id, data) {
@@ -179,7 +228,7 @@ export async function patch(col, id, data) {
     return;
   }
   const { db, fs } = await firebase();
-  fs.setDoc(fs.doc(db, col, id), doc, { merge: true }).catch((e) => console.warn('patch', col, e.code));
+  write(col, () => fs.setDoc(fs.doc(db, col, id), doc, { merge: true }));
 }
 
 export async function remove(col, id) {
@@ -190,7 +239,7 @@ export async function remove(col, id) {
     return;
   }
   const { db, fs } = await firebase();
-  fs.deleteDoc(fs.doc(db, col, id)).catch((e) => console.warn('remove', col, e.code));
+  write(col, () => fs.deleteDoc(fs.doc(db, col, id)));
 }
 
 export function useCollection(col) {
