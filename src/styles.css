@@ -476,3 +476,12 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .album-swipe.from-left { animation: album-in-l 0.22s ease-out; }
 @keyframes album-in-r { from { transform: translateX(28px); opacity: 0.3; } }
 @keyframes album-in-l { from { transform: translateX(-28px); opacity: 0.3; } }
+
+/* ---------- 기내 위치 ---------- */
+.flight-screen .seg button { padding: 0 10px; }
+.flight-intro { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; color: var(--ink); line-height: 1.5; }
+.flight-mapbox { border-radius: 14px; overflow: hidden; box-shadow: 0 1px 6px rgba(20, 30, 40, 0.15); background: #cfe3ee; }
+.flight-map { display: block; width: 100%; height: auto; font-family: inherit; }
+.flight-now { display: flex; flex-direction: column; gap: 8px; }
+.flight-near { font-size: 1.25rem; line-height: 1.3; }
+.flight-grid { display: grid; grid-template-columns: 76px minmax(0, 1fr); row-gap: 6px; font-size: 0.92rem; }

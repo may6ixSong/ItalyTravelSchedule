@@ -512,6 +512,7 @@ function TodayAlert({ b, place, onDismiss, onOpen }) {
         {place ? <a className="btn white" href={directionsUrl(place)} target="_blank" rel="noreferrer"><Icon name="locate" size={16} />길찾기</a> : <span />}
         <button className="btn soft" onClick={onOpen}><Icon name="ticket" size={16} />예약 보기</button>
       </div>
+      {b.type === 'flight' && <a className="btn white" href="#flight"><Icon name="flight" size={16} />기내 위치 보기 (이륙할 때 출발 누르기)</a>}
       <button className="btn soft small" style={{ background: 'transparent', borderTop: '1px solid rgba(255,255,255,.25)', borderRadius: 0 }} onClick={onDismiss}>
         <Icon name="x" size={14} />확인했어요 · 오늘 그만 보기
       </button>

@@ -82,6 +82,12 @@ export default function MeScreen({ setMe }) {
         </section>
 
         <section className="card pad" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <b>기내 위치</b>
+          <span className="small muted" style={{ lineHeight: 1.5 }}>로마 ↔ 인천 비행기에서 이륙할 때 출발을 누르면, 지금 대략 어디쯤 날고 있는지 지도에 보여줘요. 비행기 모드에서도 돼요.</span>
+          <a className="btn primary" href="#flight"><Icon name="flight" size={18} />기내 위치 보기</a>
+        </section>
+
+        <section className="card pad" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <b>오프라인 지도</b>
           {!HAS_TILES ? (
             <span className="small muted" style={{ lineHeight: 1.5 }}>이 빌드에는 오프라인 지도 파일이 없어요. GitHub에 배포된 앱에서는 받을 수 있어요. 지금은 온라인 지도(OSM)를 쓰고, 본 곳만 임시 저장돼요.</span>

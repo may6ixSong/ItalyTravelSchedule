@@ -127,6 +127,7 @@ function BookingDetail({ b, onClose, onEdit }) {
         {place && <a className="btn primary grow" href={directionsUrl(place)} target="_blank" rel="noreferrer"><Icon name="locate" size={16} />길찾기</a>}
         {b.link && <a className="btn grow" href={b.link} target="_blank" rel="noreferrer"><Icon name="open" size={16} />예약 열기</a>}
       </div>
+      {b.type === 'flight' && <a className="btn" href="#flight"><Icon name="flight" size={16} />기내 위치 보기</a>}
       <button className="btn small ghost" style={{ alignSelf: 'flex-start' }} onClick={onEdit}><Icon name="edit" size={14} />예약 고치기</button>
       {t.alert && (
         <div className="card" style={{ padding: '4px 14px' }}>

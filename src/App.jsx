@@ -6,6 +6,7 @@ import PhrasesScreen from './screens/PhrasesScreen.jsx';
 import AlbumScreen from './screens/AlbumScreen.jsx';
 import MeScreen from './screens/MeScreen.jsx';
 import Onboarding from './screens/Onboarding.jsx';
+import FlightScreen from './screens/FlightScreen.jsx';
 import { Icon } from './components/ui.jsx';
 import { MeContext, linkToFirebase, loadMe } from './lib/user.js';
 import { BOOKING_TYPES } from './data/bookings.js';
@@ -27,7 +28,7 @@ const TABS = [
 // 주소 끝(#book/check 등)으로 탭을 기억해서 안드로이드 뒤로가기와 새로고침에도 같은 화면이 열립니다.
 function readHash() {
   const [tab = 'map', sub = ''] = location.hash.replace(/^#\/?/, '').split('/');
-  return { tab: TABS.some((t) => t[0] === tab) ? tab : 'map', sub };
+  return { tab: tab === 'flight' || TABS.some((t) => t[0] === tab) ? tab : 'map', sub };
 }
 
 const COL_LABEL = { expenses: '가계부', checklist: '체크리스트', records: '기록', photos: '사진', settings: '설정', users: '프로필' };
@@ -117,6 +118,7 @@ export default function App() {
           {tab === 'money' && <ExpensesScreen />}
           {tab === 'talk' && <PhrasesScreen />}
           {tab === 'me' && <MeScreen setMe={setMe} />}
+          {tab === 'flight' && <FlightScreen onClose={() => (history.length > 1 ? history.back() : go('me'))} />}
         </main>
         <nav className="tabbar" aria-label="메뉴">
           {TABS.map(([id, label, icon]) => (
