@@ -1,4 +1,4 @@
-// 추억 앨범: 날짜별로 올린 사진을 랜덤 레이아웃(20종)의 앨범 페이지로 보여줘요.
+// 추억 앨범: 날짜별로 올린 사진을 랜덤 레이아웃(36종)의 앨범 페이지로 보여줘요. 좌우로 밀면 이전날/다음날.
 // 사진은 이 폰에만 저장돼서 비행기 안(오프라인)에서도 전체 여행 슬라이드쇼를 볼 수 있어요.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAYS, dayLabel, todayIso } from '../data/itinerary.js';
@@ -99,6 +99,9 @@ export default function AlbumScreen() {
   const [usage, setUsage] = useState(null);
   const fileRef = useRef(null);
   const chipsRef = useRef(null);
+  const touch = useRef(null);
+  const rootRef = useRef(null);
+  const [slide, setSlide] = useState('');
 
   const day = DAYS.find((d) => d.id === dayId) || defaultDay(photos);
   const byDate = useMemo(() => {
@@ -119,6 +122,28 @@ export default function AlbumScreen() {
     el?.scrollIntoView({ block: 'nearest', inline: 'center' });
   }, [day.id]);
 
+  // 앨범을 왼쪽/오른쪽으로 밀면 다음날/이전날로
+  const goDay = (step) => {
+    const d = DAYS[DAYS.indexOf(day) + step];
+    if (!d) return;
+    setSlide(step > 0 ? 'from-right' : 'from-left');
+    setDayId(d.id);
+    rootRef.current?.scrollTo({ top: 0 });
+  };
+  const onTouchStart = (e) => {
+    const t = e.touches[0];
+    touch.current = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, at: Date.now() } : null;
+  };
+  const onTouchEnd = (e) => {
+    const s = touch.current;
+    touch.current = null;
+    if (!s) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - s.x;
+    const dy = t.clientY - s.y;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - s.at < 800) goDay(dx < 0 ? 1 : -1);
+  };
+
   const upload = async (e) => {
     const files = [...(e.target.files || [])];
     e.target.value = '';
@@ -131,7 +156,7 @@ export default function AlbumScreen() {
   };
 
   return (
-    <div className="scroll album-screen">
+    <div className="scroll album-screen" ref={rootRef}>
       <div className="top">
         <div className="top-inner">
           <div className="row">
@@ -153,7 +178,7 @@ export default function AlbumScreen() {
         </div>
       </div>
 
-      <div className="page">
+      <div className={`page album-swipe ${slide}`} key={day.id} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchCancel={() => (touch.current = null)}>
         <div className="row album-dayhead">
           <b>{info.n} · {info.long}</b>
           <span className="muted small grow">{day.title}{list.length ? ` · 사진 ${list.length}장` : ''}</span>

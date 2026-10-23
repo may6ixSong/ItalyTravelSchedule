@@ -4,7 +4,7 @@ import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
-import { buildStyle } from '../lib/mapStyle.js';
+import { buildStyle, registerOfflineSources } from '../lib/mapStyle.js';
 import { CATEGORIES } from '../data/places.js';
 
 let protocolAdded = false;
@@ -73,6 +73,7 @@ export default function MapView({ markers, routes = [], me, radius, measure, onM
   useEffect(() => {
     if (!protocolAdded) {
       const protocol = new Protocol();
+      registerOfflineSources(protocol);
       maplibregl.addProtocol('pmtiles', protocol.tile);
       protocolAdded = true;
     }

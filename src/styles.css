@@ -399,6 +399,8 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .apage.kraft { background: #d8c4a2 radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px) 0 0 / 6px 6px; }
 .apage.sage { background: #e3e8dc; }
 .apage.blush { background: #f4e4dc; }
+.apage.lemon { background: #f6efd3; }
+.apage.mint { background: #dcefe9; }
 .apage.navy { background: #203245; }
 .apage.film { background: #1d1b1a; }
 .aslot { position: absolute; padding: 0; border: 0; background: rgba(120, 110, 90, 0.15); overflow: hidden; cursor: pointer; }
@@ -468,3 +470,9 @@ textarea.input { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 /* 저장 실패 알림 */
 .write-toast { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); width: min(94vw, 520px); z-index: 90; background: var(--danger); color: #fff; border-radius: 14px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 0.86rem; line-height: 1.45; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); animation: fade 0.2s; }
 .write-toast svg { flex-shrink: 0; margin-top: 2px; }
+/* 앨범 좌우로 밀어 날짜 넘기기 */
+.album-swipe { touch-action: pan-y pinch-zoom; }
+.album-swipe.from-right { animation: album-in-r 0.22s ease-out; }
+.album-swipe.from-left { animation: album-in-l 0.22s ease-out; }
+@keyframes album-in-r { from { transform: translateX(28px); opacity: 0.3; } }
+@keyframes album-in-l { from { transform: translateX(-28px); opacity: 0.3; } }
