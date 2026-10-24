@@ -99,6 +99,15 @@ export default function MapScreen({ go, openBooking }) {
 
   // 앱을 켜둔 채 날짜가 바뀌면(자정 지나 다시 열 때) 오늘 날짜로 이동
   const lastToday = useRef(today);
+  // 날짜 칩 줄이 나타날 때 오늘 칩이 맨 왼쪽에 오도록 가로 스크롤 (끝쪽이면 브라우저가 최대치로 맞춤)
+  const dayChipsRef = useCallback((el) => {
+    if (!el) return;
+    requestAnimationFrame(() => {
+      const chip = el.querySelector('[data-today]');
+      if (!chip) return;
+      el.scrollLeft += chip.getBoundingClientRect().left - el.getBoundingClientRect().left;
+    });
+  }, []);
   useEffect(() => {
     const check = () => {
       const t = todayIso();
@@ -372,13 +381,13 @@ export default function MapScreen({ go, openBooking }) {
               )}
               <button style={{ border: 0, background: 'none', padding: 0 }} onClick={() => go('me')} aria-label="내 정보"><Avatar user={me} size={34} /></button>
             </div>
-            <div className="chips" role="tablist" aria-label="날짜">
+            <div className="chips" role="tablist" aria-label="날짜" ref={dayChipsRef}>
               <button className={`chip day-chip ${dayId === 'all' ? 'solid' : ''}`} onClick={() => setDayId('all')}>전체</button>
               {DAYS.map((d) => {
                 const l = dayLabel(d.date);
                 const on = d.id === dayId;
                 return (
-                  <button key={d.id} className={`chip day-chip ${on ? 'solid' : ''}`} style={{ '--c': CITIES[d.city].color }} onClick={() => setDayId(d.id)}>
+                  <button key={d.id} className={`chip day-chip ${on ? 'solid' : ''}`} style={{ '--c': CITIES[d.city].color }} onClick={() => setDayId(d.id)} data-today={d.date === today || undefined}>
                     <span className="dot-c" />{l.dd} {l.wd}{d.date === today && <b> · 오늘</b>}
                     {dayNotes[d.id] && <span className="note-dot chip-note" aria-label="메모 있음" />}
                     {weather[d.date] && <><span className="wx-ico" aria-label={WEATHER_KINDS[weather[d.date].kind].label}>{WEATHER_KINDS[weather[d.date].kind].icon}</span><span className="wx-t">{weather[d.date].tmax}°</span></>}
