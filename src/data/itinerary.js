@@ -14,7 +14,7 @@ const CAPRI_COMMON = [
   A('cp-camerelle', '', '명품 쇼핑거리'),
   A('cp-augusto'),
   R('cp-marina', '', '나폴리 복귀'),
-  A('na-kalo', '저녁'),
+  A('na-diego-sl', '저녁', '나폴리 1등 피자'),
   A('na-lungomare', '', '해변 거리 산책'),
   A('na-supero', '', '슈퍼마켓'),
   R('na-hotel', '밤', '숙소 복귀'),
@@ -79,7 +79,7 @@ export const DAYS = [
     A('na-spagnoli', '오후'),
     A('na-gambrinus', '오후'),
     A('na-nuovo', '오후'),
-    A('na-diego-sl', '저녁', '나폴리 1등 피자'),
+    A('na-kalo', '저녁'),
     R('na-hotel', '밤', '숙소 복귀'),
   ] },
   { id: 'd6', date: '2026-10-25', city: 'naples', title: '카프리', stops: [
