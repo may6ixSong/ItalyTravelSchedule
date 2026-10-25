@@ -1,7 +1,7 @@
 // 날짜별 일정. 장소 순서 = 일정 순서(지도 번호 마커)이고, 하루의 처음과 끝은 항상 숙소예요.
 // 도시를 옮기는 날은 출발 도시 숙소로 시작해 도착 도시 숙소로 끝나요.
 // tag: confirmed(확정 — 숙소 · 예약) | suggested(가고 싶은 곳)
-// alts: 그날의 다른 일정(카프리 루트 B 등). 앱에서 고친 일정은 공유 DB에 저장돼 이 일정 위에 덮어씌워져요.
+// alts: 그날의 다른 일정(우천시 등). 앱에서 고친 일정은 공유 DB에 저장돼 이 일정 위에 덮어씌워져요.
 import { PLACE_BY_ID } from './places.js';
 
 const stop = (tag) => (place, time = '', note = '', title) => ({ time, title: title || PLACE_BY_ID[place]?.name || place, place, note, tag });
@@ -69,23 +69,7 @@ export const DAYS = [
     A('na-kitebeer', '밤'),
     R('na-hotel', '밤', '숙소 복귀'),
   ] },
-  { id: 'd5', date: '2026-10-24', city: 'naples', title: '카프리', mainLabel: '루트 A · 푸른 동굴', stops: [
-    R('na-hotel', '오전', '출발'),
-    A('cp-island', '오전'),
-    A('cp-grotta', '오전', '푸른 동굴 입장 가능할 때'),
-    A('cp-verginiello', '점심'),
-    ...CAPRI_COMMON,
-  ], alts: [
-    { id: 'routeB', label: '루트 B · 동굴 불가', stops: [
-      R('na-hotel', '오전', '출발'),
-      A('cp-island', '오전'),
-      A('cp-anacapri', '오전', '푸른 동굴 입장 불가일 때'),
-      A('cp-solaro', '오전'),
-      A('cp-arcate', '점심'),
-      ...CAPRI_COMMON,
-    ] },
-  ] },
-  { id: 'd6', date: '2026-10-25', city: 'naples', title: '나폴리', stops: [
+  { id: 'd5', date: '2026-10-24', city: 'naples', title: '나폴리', stops: [
     R('na-hotel', '오전', '출발'),
     A('na-elmo', '오전'),
     A('na-pignasecca', '오후', '시장'),
@@ -97,6 +81,14 @@ export const DAYS = [
     A('na-nuovo', '오후'),
     A('na-diego-sl', '저녁', '나폴리 1등 피자'),
     R('na-hotel', '밤', '숙소 복귀'),
+  ] },
+  { id: 'd6', date: '2026-10-25', city: 'naples', title: '카프리', stops: [
+    R('na-hotel', '오전', '출발'),
+    A('cp-island', '오전'),
+    A('cp-anacapri', '오전'),
+    A('cp-solaro', '오전'),
+    A('cp-arcate', '점심'),
+    ...CAPRI_COMMON,
   ] },
   { id: 'd7', date: '2026-10-26', city: 'positano', title: '나폴리 → 포지타노', stops: [
     R('na-hotel', '오전', '체크아웃'),
