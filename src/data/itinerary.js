@@ -106,7 +106,18 @@ export const DAYS = [
     A('fi-manifattura', '밤'),
     R('fi-hotel', '밤', '숙소 복귀'),
   ] },
-  { id: 'd9', date: '2026-10-28', city: 'florence', title: '피렌체', stops: [
+  { id: 'd9', date: '2026-10-28', city: 'pisa', title: '피사', stops: [
+    R('fi-hotel', '오전', '출발'),
+    A('pi-posto', '오전'),
+    A('pi-tower', '오전'),
+    A('pi-branzo', '점심'),
+    A('pi-rufus', '오후'),
+    A('fi-mercato', '오후', '피렌체 복귀 후'),
+    A('fi-nerbone', '오후', '곱창버거'),
+    A('fi-nuti', '저녁'),
+    R('fi-hotel', '밤', '숙소 복귀'),
+  ] },
+  { id: 'd10', date: '2026-10-29', city: 'florence', title: '피렌체', stops: [
     R('fi-hotel', '오전', '출발'),
     A('fi-viewart', '오전'),
     A('fi-duomosq', '오전'),
@@ -120,17 +131,6 @@ export const DAYS = [
     A('fi-vecchio', '오후'),
     A('fi-michelangelo', '오후'),
     R('fi-dalloste3', '19:30', '저녁 · TheFork 예약 · 비스테카 알라 피오렌티나', 'Trattoria Dalloste (예약)'),
-    R('fi-hotel', '밤', '숙소 복귀'),
-  ] },
-  { id: 'd10', date: '2026-10-29', city: 'pisa', title: '피사', stops: [
-    R('fi-hotel', '오전', '출발'),
-    A('pi-posto', '오전'),
-    A('pi-tower', '오전'),
-    A('pi-branzo', '점심'),
-    A('pi-rufus', '오후'),
-    A('fi-mercato', '오후', '피렌체 복귀 후'),
-    A('fi-nerbone', '오후', '곱창버거'),
-    A('fi-nuti', '저녁'),
     R('fi-hotel', '밤', '숙소 복귀'),
   ] },
   { id: 'd11', date: '2026-10-30', city: 'tuscany', title: '피렌체 → 끼안띠', stops: [

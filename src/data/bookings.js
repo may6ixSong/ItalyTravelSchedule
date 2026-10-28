@@ -38,7 +38,7 @@ export const BOOKINGS = [
   }),
   B('b-train-nf', 'train', '2026-10-27', '나폴리 → 피렌체 기차', { time: '15:25', sub: '15:25 – 18:31 · Napoli Centrale · 79.8€', place: 'na-centrale' }),
   B('b-stay-florence', 'stay', '2026-10-27', '리사하우스 2호점 · 피렌체', { endDate: '2026-10-30', sub: 'Via Luigi Alamanni 35', place: 'fi-hotel' }),
-  B('b-dalloste', 'meal', '2026-10-28', 'Trattoria Dalloste 저녁 예약', { time: '19:30', place: 'fi-dalloste3', sub: 'TheFork 앱 예약 · 비스테카 알라 피오렌티나' }),
+  B('b-dalloste', 'meal', '2026-10-29', 'Trattoria Dalloste 저녁 예약', { time: '19:30', place: 'fi-dalloste3', sub: 'TheFork 앱 예약 · 비스테카 알라 피오렌티나' }),
   B('b-car', 'car', '2026-10-30', '피렌체 렌터카 픽업', { time: '', sub: '10/30 – 10/31 반납', place: 'fi-smn' }),
   B('b-stay-chianti', 'stay', '2026-10-30', 'Corte di Valle · 끼안띠', { endDate: '2026-10-31', place: 'tu-hotel' }),
   B('b-stay-florence2', 'stay', '2026-10-31', '호텔 팔라쪼 베키오 · 피렌체', { endDate: '2026-11-01', place: 'fi-hotel2' }),

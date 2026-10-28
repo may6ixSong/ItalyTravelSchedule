@@ -58,13 +58,26 @@ export function useLiveRate() {
 // 공유 설정(settings/rates): { markup: 3, lots: [{id, eur, rate, date, memo}], cashUsesLot: true, fallbackToLive: true }
 export const DEFAULT_RATE_SETTINGS = { markup: 3, lots: [], cashUsesLot: true, fallbackToLive: true };
 
-// 환전한 유로 묶음별 남은 금액 (사용한 순서대로 차감)
-export function lotBalances(lots, expenses) {
-  const used = {};
-  for (const e of expenses || []) {
-    if (e.lotId) used[e.lotId] = (used[e.lotId] || 0) + (e.lotEur ?? e.amount);
+// 미리 환전한 유로는 트래블월렛처럼 한 지갑으로 봅니다. 환전할 때마다 전체 환전 기록의 가중 평균 환율로 맞춰지고,
+// 이 지갑에서 쓴 지출은 기록 당시 환율이 아니라 지금의 평균 환율로 원화를 다시 계산해요.
+export function lotPool(lots, expenses) {
+  const total = (lots || []).reduce((a, l) => a + (Number(l.eur) || 0), 0);
+  const cost = (lots || []).reduce((a, l) => a + (Number(l.eur) || 0) * (Number(l.rate) || 0), 0);
+  const used = (expenses || []).filter((e) => e.rateType === 'lot').reduce((a, e) => a + (e.lotEur ?? e.amount ?? 0), 0);
+  return { eur: total, cost, rate: total > 0 ? cost / total : 0, used, left: Math.max(0, total - used) };
+}
+
+// 지출 한 건의 원화. 환전 지갑에서 쓴 부분은 지금 평균 환율, 잔액을 넘어 현재 환율로 계산한 부분은 그때 금액 그대로.
+export function expenseKrw(e, pool, lots) {
+  if (e.currency !== 'EUR' || e.rateType !== 'lot' || !(pool?.rate > 0)) return e.krw || 0;
+  const lotEur = e.lotEur ?? e.amount ?? 0;
+  let over = e.overKrw;
+  if (over == null) {
+    // 예전 기록: 그때 쓴 환전 환율로 지갑 부분을 빼서 초과분을 구해요
+    const old = (lots || []).find((l) => l.id === e.lotId)?.rate;
+    over = lotEur < (e.amount || 0) && old ? Math.max(0, (e.krw || 0) - lotEur * old) : 0;
   }
-  return lots.map((l) => ({ ...l, used: used[l.id] || 0, left: Math.max(0, l.eur - (used[l.id] || 0)) }));
+  return Math.round(lotEur * pool.rate + over);
 }
 
 export const won = (n) => `₩ ${Math.round(n).toLocaleString('ko-KR')}`;
