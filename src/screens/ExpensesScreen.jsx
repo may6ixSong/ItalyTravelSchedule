@@ -234,7 +234,8 @@ function ExpenseEditor({ initial, all, onClose, onRates }) {
   const gross = num(amount);
   const refundValue = taxFree ? Math.min(num(refund), gross) : 0;
   const value = Math.round((gross - refundValue) * 100) / 100;
-  const vatGuess = () => setRefund(String(currency === 'EUR' ? Math.round((gross * 22 / 122) * 100) / 100 : Math.round(gross * 10 / 110)));
+  // 이탈리아 택스리펀은 수수료를 빼면 보통 결제 금액의 12% 정도 돌려받아요
+  const vatGuess = () => setRefund(String(currency === 'EUR' ? Math.round(gross * 12) / 100 : Math.round(gross * 0.12)));
 
   const calc = useMemo(() => {
     if (currency === 'KRW') return { krw: value, rate: null, rateType: null };
@@ -315,7 +316,7 @@ function ExpenseEditor({ initial, all, onClose, onRates }) {
           <span>면세 금액 ({currency === 'EUR' ? '€' : '₩'})</span>
           <div className="row">
             <input className="input grow" inputMode="decimal" value={refund} onChange={(e) => setRefund(e.target.value)} placeholder="환급 금액" aria-label="면세 금액" />
-            <button className="btn small" disabled={!gross} onClick={vatGuess}>부가세 {currency === 'EUR' ? '22%' : '10%'}</button>
+            <button className="btn small" disabled={!gross} onClick={vatGuess}>12%</button>
           </div>
           {refundValue > 0 && <span className="tiny muted">{currency === 'EUR' ? eur(gross) : won(gross)} − 면세 {currency === 'EUR' ? eur(refundValue) : won(refundValue)} = <b>{currency === 'EUR' ? eur(value) : won(value)}</b> 지출</span>}
         </div>
