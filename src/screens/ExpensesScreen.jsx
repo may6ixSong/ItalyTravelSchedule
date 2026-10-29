@@ -136,7 +136,7 @@ function Entry({ e, user, onClick }) {
       <span className="theme-ic" style={{ background: bg, color: fg }}><Icon name={THEME_ICON[e.theme] || 'list'} size={18} /></span>
       <span className="grow">
         <span style={{ display: 'block', fontWeight: 600, fontSize: '0.92rem' }}>{e.title || THEME_BY_ID[e.theme]?.label}</span>
-        <span className="tiny muted">{THEME_BY_ID[e.theme]?.label} · {e.payment === 'cash' ? '현금' : '카드'}{e.prepaid ? ' · 사전 결제' : ''}</span>
+        <span className="tiny muted">{THEME_BY_ID[e.theme]?.label} · {e.payment === 'cash' ? '현금' : '카드'}{e.prepaid ? ' · 사전 결제' : ''}{e.taxFree ? ` · 면세 ${e.currency === 'EUR' ? eur(e.taxFree) : won(e.taxFree)} 제외` : ''}</span>
       </span>
       <span style={{ textAlign: 'right' }}>
         <span style={{ display: 'block', fontWeight: 700 }}>{won(e.krw)}</span>
@@ -213,7 +213,10 @@ function ExpenseEditor({ initial, all, onClose, onRates }) {
   const isNew = !initial.id;
   const today = todayIso();
   const [currency, setCurrency] = useState(initial.currency || 'EUR');
-  const [amount, setAmount] = useState(initial.amount != null ? String(initial.amount) : '');
+  // 면세면 결제 금액(gross)을 입력받고, 면세 금액을 뺀 값만 지출(amount)로 저장해요
+  const [amount, setAmount] = useState(String(initial.gross ?? initial.amount ?? ''));
+  const [taxFree, setTaxFree] = useState(!!initial.taxFree);
+  const [refund, setRefund] = useState(initial.taxFree ? String(initial.taxFree) : '');
   const [title, setTitle] = useState(initial.title || '');
   const [theme, setTheme] = useState(initial.theme || 'food');
   const [date, setDate] = useState(initial.date || today);
@@ -227,7 +230,11 @@ function ExpenseEditor({ initial, all, onClose, onRates }) {
   const hasLot = pool.left > 0;
   const rateType = rateChoice || (settings.cashUsesLot && payment === 'cash' && hasLot ? 'lot' : 'live');
   const liveRate = live.rate + Number(settings.markup || 0);
-  const value = Number(String(amount).replace(',', '.')) || 0;
+  const num = (v) => Number(String(v).replace(',', '.')) || 0;
+  const gross = num(amount);
+  const refundValue = taxFree ? Math.min(num(refund), gross) : 0;
+  const value = Math.round((gross - refundValue) * 100) / 100;
+  const vatGuess = () => setRefund(String(currency === 'EUR' ? Math.round((gross * 22 / 122) * 100) / 100 : Math.round(gross * 10 / 110)));
 
   const calc = useMemo(() => {
     if (currency === 'KRW') return { krw: value, rate: null, rateType: null };
@@ -249,6 +256,7 @@ function ExpenseEditor({ initial, all, onClose, onRates }) {
     const doc = {
       date, title: title.trim(), theme, currency, amount: value, krw: Math.round(calc.krw),
       rate: calc.rate, rateType: calc.rateType, lotId: calc.lotId || '', lotEur: calc.lotEur ?? 0, overKrw: calc.overKrw ?? null,
+      gross: refundValue ? gross : null, taxFree: refundValue || 0,
       payment, payer, prepaid, by: initial.by || me.uid, at: initial.at || Date.now(),
     };
     if (isNew) add('expenses', doc);
@@ -295,6 +303,21 @@ function ExpenseEditor({ initial, all, onClose, onRates }) {
           ) : (
             <button className="btn small ghost" onClick={onRates}>미리 환전한 환율 등록하기</button>
           )}
+        </div>
+      )}
+
+      <div className="row">
+        <span className="grow"><b style={{ fontSize: '0.9rem' }}>면세</b><span className="tiny muted" style={{ display: 'block' }}>환급받을 금액을 빼고 지출로 기록해요</span></span>
+        <Switch checked={taxFree} onChange={setTaxFree} label="면세" />
+      </div>
+      {taxFree && (
+        <div className="field">
+          <span>면세 금액 ({currency === 'EUR' ? '€' : '₩'})</span>
+          <div className="row">
+            <input className="input grow" inputMode="decimal" value={refund} onChange={(e) => setRefund(e.target.value)} placeholder="환급 금액" aria-label="면세 금액" />
+            <button className="btn small" disabled={!gross} onClick={vatGuess}>부가세 {currency === 'EUR' ? '22%' : '10%'}</button>
+          </div>
+          {refundValue > 0 && <span className="tiny muted">{currency === 'EUR' ? eur(gross) : won(gross)} − 면세 {currency === 'EUR' ? eur(refundValue) : won(refundValue)} = <b>{currency === 'EUR' ? eur(value) : won(value)}</b> 지출</span>}
         </div>
       )}
 
